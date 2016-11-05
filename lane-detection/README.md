@@ -1,0 +1,1 @@
+# Python Modul zur Erkennung von Straßenmarkierungen
