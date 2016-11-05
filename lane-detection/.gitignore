@@ -1,0 +1,5 @@
+# Build Verzeichnis
+build/
+
+# Kompilierte Python Dateien
+*.pyc
