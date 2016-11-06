@@ -1,5 +1,6 @@
-# Build Verzeichnis
+# Build Verzeichnisse
 build/
+dist/
 
 # Kompilierte Python Dateien
 *.pyc
