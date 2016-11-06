@@ -20,17 +20,16 @@ python setup.py sdist
 python setup.py install
 ```
 
-## Beispiele zur Nutzung
-Die Bibliothek lässt sich nach erfolgreicher Installation einfach in ein Python Skript importieren.
+Nach erfolgreicher Installation lässt sich die Bibliothek einfach in ein Python Skript importieren.
 ```python
 import detectionlib
-# oder direkt die einzelnen Klassen
+# Import der einzelnen Klassen
 from detectionlib import Visualizer
 from detectionlib import LineFilter
 from detectionlib import LaneDetector
 from detectionlib import ImagePreparator
 ```
-
+## Beispiel zur Nutzung
 Das Skript __test.py__ zeigt exemplarisch, wie die Bibliothek benutzt werden kann. Dazu wird das unter dem Ordner __data__ zu findende Video eingelesen
 und die zu sehenden Straßenmarkierungen im Video farblich markiert.
 Das Testskript kann einfach mit folgendem Kommandozeilenbefehl gestartet werden:
