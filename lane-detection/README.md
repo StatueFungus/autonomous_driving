@@ -5,22 +5,20 @@ Enthält eine in Python geschriebene Bibliothek zur Erkennung von Straßenmarkie
 > TODO
 
 ## Installationsanleitung
-Zur Installation der Bibliothek muss die Datei _setup.py_ wie folgt auf der Kommandozeile ausgeführt werden:
+Damit die Bibliothek genutzt werden kann, muss [OpenCV](http://opencv.org/) und [Python](https://www.python.org/) (Version >= 2.7) auf dem System installiert sein.
+Eine detaillierte Installationsanleitung für OpenCV und Python für Ubuntu wird auf folgender Seite beschrieben:
+http://www.pyimagesearch.com/2015/06/22/install-opencv-3-0-and-python-2-7-on-ubuntu/
 
-1. Paketdatei erstellen
+Zur Installation der Bibliothek muss lediglich die Datei __setup.py__ wie folgt auf der Kommandozeile ausgeführt werden:
 
-```{r, engine='bash', count_lines}
+* Paketdatei erstellen
+```
 python setup.py sdist
 ```
-2. Paket in die lokale Python-Umgebung installieren
-
-```{r, engine='bash', count_lines}
+* Paket in die lokale Python-Umgebung installieren
+```
 python setup.py install
 ```
-
-Damit die Bibliothek genutzt werden kann, muss zusätzlich OpenCV auf dem System installiert sein.
-Eine detaillierte Installationsanleitung für OpenCV für Ubuntu findet sich auf folgender Seite:
-http://www.pyimagesearch.com/2015/06/22/install-opencv-3-0-and-python-2-7-on-ubuntu/
 
 ## Beispiele zur Nutzung
 Die Bibliothek kann einfach genutz werden, durch den Import in ein Python Skript.
