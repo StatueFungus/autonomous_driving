@@ -5,7 +5,7 @@ Enthält eine in Python geschriebene Bibliothek zur Erkennung von Straßenmarkie
 > TODO
 
 ## Installationsanleitung
-Damit die Bibliothek genutzt werden kann, muss [OpenCV](http://opencv.org/) und [Python](https://www.python.org/) (Version >= 2.7) auf dem System installiert sein.
+Damit die Bibliothek genutzt werden kann, muss [OpenCV](http://opencv.org/) (Version >= 3.0) und [Python](https://www.python.org/) (Version >= 2.7) auf dem System installiert sein.
 Eine detaillierte Installationsanleitung für OpenCV und Python für Ubuntu wird auf folgender Seite beschrieben:
 http://www.pyimagesearch.com/2015/06/22/install-opencv-3-0-and-python-2-7-on-ubuntu/
 
