@@ -4,3 +4,6 @@ dist/
 
 # Kompilierte Python Dateien
 *.pyc
+
+# Manifest Datei
+MANIFEST
