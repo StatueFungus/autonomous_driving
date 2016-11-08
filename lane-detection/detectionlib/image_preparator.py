@@ -4,9 +4,10 @@ import cv2
 
 class ImagePreparator:
     
-    def __init__(self, image=None):
+    def __init__(self, image):
         self.image = image        
-
+        self.heigth, self.width, self.channels = image.shape
+        
     def define_roi(self, above):
         ''' 
             Bildbereiche welche nicht von Interesse sind werden geschwaerzt. 
@@ -16,11 +17,9 @@ class ImagePreparator:
                 >> 1 entspricht dabei 100%
         
         '''
-        heigth, width, channels = self.image.shape
-        black = (0,0,0)
         # oberer Bildabschnitt
-        self.image[0:int((heigth*above)),:] = black
-        return self.image
+        color_black = (0,0,0)
+        self.image[0:int((self.heigth*above)),:] = color_black
 
     def grayscale(self):
         ''' 
@@ -28,21 +27,16 @@ class ImagePreparator:
         
         '''
         self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-        return self.image
 
     def adaptive_hist_equalization(self):
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
         self.image = clahe.apply(self.image)
-        return self.image
 
     def blur(self, deviation, border):
         self.image = cv2.GaussianBlur(self.image, deviation, border)
-        return self.image
     
     def global_threshold(self, threshold1, threshold2):
-        dst, thresh = cv2.threshold(self.image, threshold1, threshold2, cv2.THRESH_BINARY)
-        return thresh
+        dst, self.image = cv2.threshold(self.image, threshold1, threshold2, cv2.THRESH_BINARY)
 
     def canny(self, threshold1, threshold2, aperture):
-        edges = cv2.Canny(self.image, threshold1, threshold2, aperture)
-        return edges
+        self.image = cv2.Canny(self.image, threshold1, threshold2, aperture)
