@@ -12,7 +12,7 @@ Zusätzlich muss _imutils_ für Python installiert werden:
 sudo pip install imutils
 ```
 
-Zur Installation der Bibliothek muss lediglich die Datei __setup.py__ wie folgt auf der Kommandozeile ausgeführt werden:
+Zur Installation der *detectionlib* Bibliothek muss lediglich die Datei __setup.py__ wie folgt auf der Kommandozeile ausgeführt werden:
 
 * Paketdatei erstellen
 ```
