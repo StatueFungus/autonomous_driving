@@ -8,7 +8,7 @@ from detectionlib import LaneDetector
 from detectionlib import ImagePreparator
 
 def main():
-    capture = cv2.VideoCapture('data/rage.avi')
+    capture = cv2.VideoCapture('data/road.avi')
     ticks = 0
     
     line_filter = LineFilter()

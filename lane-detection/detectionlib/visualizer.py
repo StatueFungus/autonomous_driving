@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import cv2
+import cv2, imutils
 
 class Visualizer:
     ''' Klasse welche Methoden anbietet um Text und Linien auf ein Bild zu rendern und dieses anzuzeigen '''
@@ -63,4 +63,7 @@ class Visualizer:
                 Position des Textes >> (x,y)
 
         '''
-        cv2.putText(self.image, text,position, cv2.FONT_HERSHEY_COMPLEX, size, color, 2, cv2.LINE_AA)
+	if imutils.is_cv2():
+	    cv2.putText(self.image, text,position, cv2.FONT_HERSHEY_COMPLEX, size, color, 2, cv2.CV_AA)
+	elif imutils.is_cv3():
+            cv2.putText(self.image, text,position, cv2.FONT_HERSHEY_COMPLEX, size, color, 2, cv2.LINE_AA)
