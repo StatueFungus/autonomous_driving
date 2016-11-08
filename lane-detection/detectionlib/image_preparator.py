@@ -6,8 +6,8 @@ class ImagePreparator:
     
     def __init__(self, image):
         self.image = image        
-        self.heigth, self.width, self.channels = image.shape
-        
+        self.height, self.width, self.channels = image.shape
+ 
     def define_roi(self, above):
         ''' 
             Bildbereiche welche nicht von Interesse sind werden geschwaerzt. 
@@ -19,7 +19,7 @@ class ImagePreparator:
         '''
         # oberer Bildabschnitt
         color_black = (0,0,0)
-        self.image[0:int((self.heigth*above)),:] = color_black
+        self.image[0:int((self.height*above)),:] = color_black
 
     def grayscale(self):
         ''' 

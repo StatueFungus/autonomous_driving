@@ -28,6 +28,7 @@ def main():
         img_prep.grayscale()
         img_prep.adaptive_hist_equalization()
         img_prep.blur((5,5), 3)
+        # Canny oder Threshold benutzen
         #img_prep.global_threshold(165, 255)
         img_prep.canny(1, 250, 3)
                     
@@ -42,8 +43,8 @@ def main():
         vis.draw_lines(flines, (0,255,0), 2)
         
         if len(flines) == 0:
-            vis.draw_text('NO LINES', 1, (0,0,255), (10, 75))
-        vis.draw_text('FPS: ' + str(fps), 1, (255,0,0), (10, 30))
+            vis.draw_text('NO LINES', 1, (0,0,255), (int(img_prep.width*0.015), int(img_prep.height*0.25)))
+        vis.draw_text('FPS: ' + str(fps), 1, (255,0,0), (int(img_prep.width*0.015), int(img_prep.height*0.15)))
         vis.show()
 
 
