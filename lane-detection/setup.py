@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
         name = 'Detectionlib',
-        version = '0.1.1',
+        version = '0.1.2',
         description = 'Bibliothek zur Erkennung von Strassenmarkierungen auf Bildern',
         packages=['detectionlib'],
         author='Benjamin Christiani',
