@@ -1,15 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- 
 
-import cv2
+import cv2, os
 import numpy as np
-from detectionlib.visualizer import Visualizer
-from detectionlib.line_filter import LineFilter
-from detectionlib.lane_detector import LaneDetector
-from detectionlib.image_preparator import ImagePreparator
+from detectionlib import Visualizer
+from detectionlib import LineFilter
+from detectionlib import LaneDetector
+from detectionlib import ImagePreparator
 
 def main():
-    capture = cv2.VideoCapture('data/road.avi')
+    print os.getcwd()
+    capture = cv2.VideoCapture('../data/road.avi')
     ticks = 0
     
     line_filter = LineFilter()
