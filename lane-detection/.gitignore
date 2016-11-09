@@ -1,9 +1,0 @@
-# Build Verzeichnisse
-build/
-dist/
-
-# Kompilierte Python Dateien
-*.pyc
-
-# Manifest Datei
-MANIFEST
