@@ -4,7 +4,7 @@ int main(int argc, char *argv[])
 {
   ros::init(argc, argv, "actuator_controls_publisher");
   ros::NodeHandle nh;
-  ros::Publisher actuator_controls_pub = nh.advertise<mavros_msgs::ActuatorControl>("actuator_controls_publisher", 1000);
+  ros::Publisher actuator_controls_pub = nh.advertise<mavros_msgs::ActuatorControl>("/mavros/actuator_control", 1000);
   ros::Rate loop_rate(10);
   double ros_roll;
   double ros_pitch;
