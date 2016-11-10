@@ -8,11 +8,11 @@ import cv2
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
-NODE_NAME = "lane_detection"
-SUB_TOPIC = "image_raw"
+NODE_NAME = "lane_detector"
+SUB_TOPIC = "image_resized"
 PUB_TOPIC = "debug_image"
 
-class LaneDetectionNode:
+class LaneDetectorNode:
 
 	def __init__(self, sub_topic, pub_topic):
 		self.line_filter = LineFilter()
@@ -45,9 +45,10 @@ class LaneDetectionNode:
 		# Filter korrekte Linien
 		lines = self.line_filter.filter(lines, 10, 50)
 		
+		#vis = Visualizer(img_prep.image)
 		vis = Visualizer(cv_image)
 		vis.draw_lines(lines, (0,255,0), 2)
-		
+		vis.show()	
 		# Publish Bild mit den gezeichneten Linien
 		try:
 			self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
@@ -58,7 +59,7 @@ def main():
 	# Initialisiere den Knoten
 	rospy.init_node(NODE_NAME, anonymous=True)
 	try:
-		ld_node = LaneDetectionNode(SUB_TOPIC, PUB_TOPIC)
+		ld_node = LaneDetectorNode(SUB_TOPIC, PUB_TOPIC)
 	except KeyboardInterrupt:
 		rospy.loginfo("Shutting down node %s", NODE_NAME)
 
