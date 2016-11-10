@@ -36,9 +36,8 @@ source /opt/ros/indigo/setup.bash
 Als nächstes muss ein catkin_workspace an beliebiger Stelle im System angelegt werden: 
 
 ```shell
-mkdir <workspace_folder>
-cd <workspace_folder>
-mkdir src 
+mkdir -p <workspace_folder>/src
+cd <workspace_folder>/src
 
 catkin_init_workspace
 ```
@@ -46,7 +45,10 @@ catkin_init_workspace
 Der Workspace muss jetzt in den Umgebungsvariablen bekannt gemacht werden
 
 ```shell
+cd ../
 source devel/setup.bash
+
+catkin_make
 ```
 
 Anschließend wird das Repository in den Workspace geklont und der Workspace gebaut:
