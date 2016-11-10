@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import cv2
+import numpy as np
 
 class ImagePreparator:
     
@@ -8,7 +9,7 @@ class ImagePreparator:
         self.image = image        
         self.height, self.width, self.channels = image.shape
  
-    def define_roi(self, above):
+    def define_roi(self, above, below):
         ''' 
             Bildbereiche welche nicht von Interesse sind werden geschwaerzt. 
 
@@ -20,6 +21,7 @@ class ImagePreparator:
         # oberer Bildabschnitt
         color_black = (0,0,0)
         self.image[0:int((self.height*above)),:] = color_black
+        self.image[self.height - int((self.height*below)):self.height,:] = color_black
 
     def grayscale(self):
         ''' 
@@ -27,10 +29,6 @@ class ImagePreparator:
         
         '''
         self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-
-    def adaptive_hist_equalization(self):
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-        self.image = clahe.apply(self.image)
 
     def blur(self, deviation, border):
         self.image = cv2.GaussianBlur(self.image, deviation, border)
@@ -40,3 +38,11 @@ class ImagePreparator:
 
     def canny(self, threshold1, threshold2, aperture):
         self.image = cv2.Canny(self.image, threshold1, threshold2, aperture)
+
+    def filter_white_color(self, lower_white, upper_white):
+        white_mask = cv2.inRange(self.image, np.array([lower_white,lower_white,lower_white]), np.array([upper_white,upper_white,upper_white]))
+        self.image = cv2.bitwise_and(self.image, self.image, mask=white_mask)
+
+    def morph_open(self, kernel):
+        self.image = cv2.morphologyEx(self.image, cv2.MORPH_OPEN, np.ones((kernel, kernel),np.uint8))
+
