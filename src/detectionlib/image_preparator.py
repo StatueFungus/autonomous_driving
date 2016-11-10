@@ -8,7 +8,7 @@ class ImagePreparator:
     def __init__(self, image):
         self.image = image        
         self.height, self.width, self.channels = image.shape
- 
+
     def define_roi(self, above, below):
         ''' 
             Bildbereiche welche nicht von Interesse sind werden geschwaerzt. 
