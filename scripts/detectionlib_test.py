@@ -24,27 +24,28 @@ def main():
         
         retval, image = capture.read()
         
-        # Aufbereitung des Bildes
+        # Aufbereitung des Bilder
         img_prep = ImagePreparator(image.copy())
-        img_prep.define_roi(0.5)
+        img_prep.define_roi(0.5,0)
+        img_prep.filter_white_color(180,255)
         img_prep.grayscale()
-        img_prep.adaptive_hist_equalization()
-        img_prep.blur((5,5), 3)
+        img_prep.morph_open(3)
+        img_prep.blur((3,3), 0)
         # Canny oder Threshold benutzen
         #img_prep.global_threshold(165, 255)
-        img_prep.canny(1, 250, 3)
-                    
+        img_prep.canny(50, 150, 3) # (1, 250, 3) oder (50, 150, 3)
+        
         # Entdecke Linien
-        lines = lane_detector.houghlines_p(img_prep.image, 50, 1, 10)
+        lines = lane_detector.houghlines_p(img_prep.image, 50, 10, 10) # (50, 10, 10) oder (100, 1, 10)
         
         # Filter korrekte Linien
-        flines = line_filter.filter(lines, 10, 50)
+        lines = line_filter.filter(lines, 10, 50)
         
-        # Anzeige des Bildes
+        #vis = Visualizer(img_prep.image)
         vis = Visualizer(image)
-        vis.draw_lines(flines, (0,255,0), 2)
+        vis.draw_lines(lines, (0,255,0), 2)
         
-        if len(flines) == 0:
+        if len(lines) == 0:
             vis.draw_text('NO LINES', 1, (0,0,255), (int(img_prep.width*0.015), int(img_prep.height*0.25)))
         vis.draw_text('FPS: ' + str(fps), 1, (255,0,0), (int(img_prep.width*0.015), int(img_prep.height*0.15)))
         vis.show()
