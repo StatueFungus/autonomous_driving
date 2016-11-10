@@ -6,7 +6,7 @@ Zum Installieren werden folgende Abhängigkeiten benötigt: **OpenCV (>= 2.4)**,
 Für eine Installationsanleitung von OpenCV siehe [Wiki Eintrag](https://gitlab.com/SGimbel/MPSE-WS1617_B/wikis/opencv%20installation).
 
 ### Mavros
-```
+```shell
 sudo apt-get install ros-indigo-mavros ros-indigo-mavros-msgs
 ```
 
@@ -35,7 +35,7 @@ catkin_init_workspace
 
 Anschließend wird das Repository in den Workspace geklont und der Workspace gebaut:
 
-```
+```shell
 git clone git@gitlab.com:SGimbel/MPSE-WS1617_B.git autonomous_driving
 
 cd ../
