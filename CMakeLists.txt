@@ -9,6 +9,8 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   mavros_msgs
+  mavros
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -131,14 +133,20 @@ include_directories(
 # add_dependencies(autonomous_driving ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(autonomous_driving_node src/actuator_control.cpp)
+add_executable(offboard_node src/offboard_mode.cpp)
+add_executable(actuator_control src/actuator_control.cpp)
 
+#add_executable(autonomous_driving_node src/offboard_mode.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(autonomous_driving_node ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(autonomous_driving_node
+target_link_libraries(offboard_node
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(actuator_control
   ${catkin_LIBRARIES}
 )
 

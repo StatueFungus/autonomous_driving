@@ -47,6 +47,10 @@
   <build_depend>mavros_msgs</build_depend>
   <build_depend>cv_bridge</build_depend>
   <build_depend>sensor_msgs</build_depend>
+  <build_depend>mavros</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>mavros</run_depend>
   <run_depend>cv_bridge</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>roscpp</run_depend>
