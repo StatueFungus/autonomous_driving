@@ -1,9 +1,9 @@
 # Installation
 
-Zum Installieren werden folgende Abhängigkeiten benötigt: OpenCV (>= 2.4), mavros, mavros_msgs, imutils
+Zum Installieren werden folgende Abhängigkeiten benötigt: **OpenCV (>= 2.4)**, **mavros**, **mavros_msgs**, **imutils**
 
 ### OpenCV
-Installationsanleitung
+Für eine Installationsanleitung von OpenCV siehe [Wiki Eintrag](https://gitlab.com/SGimbel/MPSE-WS1617_B/wikis/opencv%20installation).
 
 ### Mavros
 ```
@@ -41,5 +41,7 @@ git clone git@gitlab.com:SGimbel/MPSE-WS1617_B.git autonomous_driving
 cd ../
 catkin_make
 ```
+
+TODO: source Befehl ausführen und in user profil aufnehmen
 
 
