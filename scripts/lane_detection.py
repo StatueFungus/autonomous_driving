@@ -9,7 +9,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
 NODE_NAME = "lane_detection"
-SUB_TOPIC = "cam_image"
+SUB_TOPIC = "image_raw"
 PUB_TOPIC = "debug_image"
 
 class LaneDetectionNode:
