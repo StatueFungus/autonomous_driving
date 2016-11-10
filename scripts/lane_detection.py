@@ -35,8 +35,8 @@ class LaneDetectionNode:
 		#img_prep.adaptive_hist_equalization()
 		img_prep.blur((3,3), 0)
 		# Canny oder Threshold benutzen
-		#img_prep.global_threshold(165, 255)
-		img_prep.canny(1, 250, 3) # (1, 250, 3) oder (50, 150, 3)
+		img_prep.global_threshold(165, 255)
+		#img_prep.canny(1, 250, 3) # (1, 250, 3) oder (50, 150, 3)
 		
 		# Entdecke Linien
 		lines = self.lane_detector.houghlines_p(img_prep.image, 50, 10, 20) # (50, 10, 20) oder (100, 1, 10)
