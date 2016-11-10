@@ -13,7 +13,7 @@ sudo apt-get install ros-indigo-mavros ros-indigo-mavros-msgs
 ### imutils 
 imutils ist eine python Bibliothek, welche einfach mit pip installiert werden kann.
 
-```
+```shell
 sudo pip install imutils
 ```
 
@@ -24,7 +24,7 @@ Sollte pip nicht auf dem System installiert sein, kann es einfach mit dem Befehl
 
 Als nächstes muss ein catkin_workspace an beliebiger Stelle im System angelegt werden: 
 
-```
+```shell
 mkdir <workspace_folder>
 cd <workspace_folder>
 mkdir src 
