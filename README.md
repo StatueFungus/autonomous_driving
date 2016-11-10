@@ -4,7 +4,9 @@
 ## Vorbereitungen
 
 Es wird eine ROS Installation mit der Distribution Indigo benötigt.
-Eine detaillierte Installationsanleitung für ROS findet sich unter wiki.ros.org
+
+Eine detaillierte Installationsanleitung für ROS findet sich unter http://wiki.ros.org
+
 Zum Installieren werden folgende Abhängigkeiten benötigt: **OpenCV (>= 2.4)**, **mavros**, **mavros_msgs**, **imutils**
 
 ### OpenCV
