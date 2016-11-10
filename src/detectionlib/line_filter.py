@@ -23,8 +23,11 @@ class LineFilter:
                 dx, dy = x2 - x1, y2 - y1
                 angle = np.arctan2(dy, dx) * 180 / np.pi
                 if math.fabs(angle) <= filter_angle:
-                    continue
+                    pass
+                    #continue
                 if y1 > y2 + y_gab or y1 < y2 - y_gab:
-                    res.append(obj)
+                    pass
+                    #res.append(obj)    
+                res.append(obj)
         return res
                 
