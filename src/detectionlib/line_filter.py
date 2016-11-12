@@ -15,19 +15,25 @@ class LineFilter:
 
         '''
 
-    def filter(self, lines, filter_angle, y_gab):
+    def filter(self, lines, filter_angle):
         res = []
+        if lines is None:
+            return res 
+        if len(lines) == 0:
+            return res
+        
         for line in lines:
+            new_line=[]
             for obj in line:
                 [x1, y1, x2, y2] = obj
                 dx, dy = x2 - x1, y2 - y1
                 angle = np.arctan2(dy, dx) * 180 / np.pi
-                if math.fabs(angle) <= filter_angle:
-                    pass
-                    #continue
-                if y1 > y2 + y_gab or y1 < y2 - y_gab:
-                    pass
-                    #res.append(obj)    
-                res.append(obj)
+                if math.fabs(angle) > filter_angle:
+                    new_line.append(obj)
+            if len(new_line) != 0:
+                res.append(new_line)
+
         return res
+        
+        
                 
