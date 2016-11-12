@@ -9,7 +9,7 @@ class ImagePreparator:
         self.image = image        
         self.height, self.width, self.channels = image.shape
 
-    def define_roi(self, above, below):
+    def define_roi(self, above, below, side):
         ''' 
             Bildbereiche welche nicht von Interesse sind werden geschwaerzt. 
 
@@ -18,10 +18,12 @@ class ImagePreparator:
                 >> 1 entspricht dabei 100%
         
         '''
-        # oberer Bildabschnitt
         color_black = (0,0,0)
-        self.image[0:int((self.height*above)),:] = color_black
+        # maskiert untere Bildhäfte
         self.image[self.height - int((self.height*below)):self.height,:] = color_black
+        # definiere Punkte für Polygon und maskiert die obere Bildhälfte
+        pts = np.array([[0,0],[0,int(self.height*(above+0.15))],[int(self.width*side),int(self.height*above)],[self.width-int(self.width*side),int(self.height*above)],[self.width,int(self.height*(above+0.15))],[self.width,0]], np.int32)
+        cv2.fillPoly(self.image, [pts], color_black)
 
     def grayscale(self):
         ''' 
