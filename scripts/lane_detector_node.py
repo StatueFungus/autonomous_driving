@@ -19,7 +19,7 @@ class LaneDetectorNode:
 		self.lane_detector = LaneDetector()
 		self.bridge = CvBridge()
 		self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
-		self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=1)
+		self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=10)
 		rospy.spin()
 
 	def callback(self, data):
@@ -30,8 +30,8 @@ class LaneDetectorNode:
 
 		# Aufbereitung des Bilder
 		img_prep = ImagePreparator(cv_image.copy())
-		img_prep.define_roi(0.5,0.1)
-		img_prep.filter_white_color(200,255)
+		img_prep.define_roi(0.6,0, 0.25)
+		img_prep.filter_white_color(190,255)
 		img_prep.grayscale()
 		img_prep.morph_open(3)
 		img_prep.blur((3,3), 0)
@@ -43,12 +43,12 @@ class LaneDetectorNode:
 		lines = self.lane_detector.houghlines_p(img_prep.image, 50, 10, 10) # (50, 10, 10) oder (100, 1, 10)
 		
 		# Filter korrekte Linien
-		lines = self.line_filter.filter(lines, 10, 50)
+		lines = self.line_filter.filter(lines, 10)
 		
 		#vis = Visualizer(img_prep.image)
 		vis = Visualizer(cv_image)
 		vis.draw_lines(lines, (0,255,0), 2)
-		vis.show()	
+		vis.show()
 		# Publish Bild mit den gezeichneten Linien
 		try:
 			self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
