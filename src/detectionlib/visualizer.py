@@ -29,6 +29,9 @@ class Visualizer:
         cv2.imshow(title, self.image)
         cv2.waitKey(1)
 
+    def draw_line(self, point1, point2, line_color, line_size):
+        cv2.line(self.image, point1, point2, line_color, line_size)
+
     def draw_lines(self, lines, line_color, line_size):
         '''
             Zeichnet eine Linen auf das Bild (self.image).
@@ -43,9 +46,10 @@ class Visualizer:
                 Dicke der Linie in Pixel
         
         '''
-        for obj in lines:
-            [x1, y1, x2, y2] = obj
-            cv2.line(self.image, (x1,y1), (x2,y2), line_color, line_size)
+        for line in lines:
+            for obj in line:
+                [x1, y1, x2, y2] = obj
+                self.draw_line((x1,y1),(x2,y2),line_color,line_size)
 
     def draw_text(self, text, size, color, position):
         '''
