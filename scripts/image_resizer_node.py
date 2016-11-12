@@ -17,7 +17,7 @@ class ImageResizerNode:
 		self.height = height
 		self.bridge = CvBridge()
 		self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
-		self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=1)
+		self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=10)
 		rospy.spin()
 
 	def callback(self, data):
