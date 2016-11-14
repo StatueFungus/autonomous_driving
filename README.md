@@ -45,9 +45,10 @@ catkin_init_workspace
 Der Workspace muss jetzt in den Umgebungsvariablen bekannt gemacht werden
 
 ```shell
+cd ../
+
 catkin_make
 
-cd ../
 source devel/setup.bash
 ```
 
