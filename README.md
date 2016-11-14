@@ -45,13 +45,13 @@ catkin_init_workspace
 Der Workspace muss jetzt in den Umgebungsvariablen bekannt gemacht werden
 
 ```shell
+catkin_make
+
 cd ../
 source devel/setup.bash
-
-catkin_make
 ```
 
-Anschließend wird das Repository in den Workspace geklont und der Workspace gebaut:
+Anschließend wird das Repository in den Workspace geklont und der Workspace erneut gebaut:
 
 ```shell
 cd src
