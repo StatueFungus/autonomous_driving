@@ -9,12 +9,13 @@ from detectionlib import LaneDetector
 from detectionlib import ImagePreparator
 
 def main():
-    print os.getcwd()
     capture = cv2.VideoCapture('../data/road.avi')
     ticks = 0
     
-    line_filter = LineFilter()
     lane_detector = LaneDetector()
+
+    act_left_line = [(0,0),(0,0)]
+    act_right_line = [(0,0),(0,0)]
 
     while capture.isOpened():
         prevTick = ticks
@@ -39,11 +40,21 @@ def main():
         lines = lane_detector.houghlines_p(img_prep.image, 50, 10, 10) # (50, 10, 10) oder (100, 1, 10)
         
         # Filter korrekte Linien
-        lines = line_filter.filter(lines, 10)
-    
+        line_filter = LineFilter(image)
+        lines_dict = line_filter.filter_by_angle(lines, 10,0.6)
+        
+        new_left_line = lines_dict['left']
+        new_right_line = lines_dict['right']
+
+        if len(new_left_line) > 1:
+            act_left_line = new_left_line
+        if len(new_right_line) > 1:
+            act_right_line = new_right_line
+
         #vis = Visualizer(img_prep.image)
         vis = Visualizer(image)
-        vis.draw_lines(lines, (0,255,0), 2)
+        vis.draw_line(act_right_line[0],act_right_line[1],(0,0,255),3)
+        vis.draw_line(act_left_line[0],act_left_line[1],(0,255,0),3)
         vis.draw_text('FPS: ' + str(fps), 1, (255,0,0), (int(img_prep.width*0.015), int(img_prep.height*0.15)))
         vis.show()
 

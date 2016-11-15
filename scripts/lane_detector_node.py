@@ -15,7 +15,8 @@ PUB_TOPIC = "debug_image"
 class LaneDetectorNode:
 
 	def __init__(self, sub_topic, pub_topic):
-		self.line_filter = LineFilter()
+		self.act_left_line = [(0,0),(0,0)]
+		self.act_right_line = [(0,0),(0,0)]
 		self.lane_detector = LaneDetector()
 		self.bridge = CvBridge()
 		self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
@@ -43,11 +44,22 @@ class LaneDetectorNode:
 		lines = self.lane_detector.houghlines_p(img_prep.image, 50, 10, 10) # (50, 10, 10) oder (100, 1, 10)
 		
 		# Filter korrekte Linien
-		lines = self.line_filter.filter(lines, 10)
+		line_filter = LineFilter(cv_image)
+		lines_dic = line_filter.filter_by_angle(lines, 10, 0.6)
 		
+		new_left_line = lines_dic['left']
+		new_right_line = lines_dic['right']
+
+		if len(new_left_line) > 1:
+			self.act_left_line = new_left_line
+		if len(new_right_line) > 1:
+			self.act_right_line = new_right_line
+
 		#vis = Visualizer(img_prep.image)
 		vis = Visualizer(cv_image)
-		vis.draw_lines(lines, (0,255,0), 2)
+		vis.draw_line(self.act_left_line[0], self.act_left_line[1], (0,0,255),3)
+		vis.draw_line(self.act_right_line[0], self.act_right_line[1], (0,255,0),3)
+		#vis.draw_lines(lines, (0,255,0), 2)
 		vis.show()
 		# Publish Bild mit den gezeichneten Linien
 		try:
