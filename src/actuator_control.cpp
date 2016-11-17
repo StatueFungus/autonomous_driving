@@ -22,12 +22,6 @@ int main(int argc, char *argv[])
         1:pitch
         2:yaw
         3:throttle
-        4:flaps
-        5:spoilers
-        6:airbrakes
-        7:landing gear
-        see https://pixhawk.ethz.ch/mavlink/#SET_ACTUATOR_CONTROL_TARGET
-        and https://pixhawk.org/dev/mixing
       */
       actuator_control_msg.header.stamp = ros::Time::now();
       actuator_control_msg.group_mix = 0;
