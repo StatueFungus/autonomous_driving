@@ -5,7 +5,7 @@ import math
 
 class Camera:
 
-    def __init__(self, l=0, d=0, h=0, n=640, m=480, gamma=0, theta=0, psi=0, aperture=140):
+    def __init__(self, l=0, d=0, h=0, n=480, m=640, gamma=0, theta=0, psi=0, aperture=140):
         
         self.l = l
         self.d = d
@@ -20,7 +20,7 @@ class Camera:
 
     def image_to_world_coordinates(self, u, v):
         x = self.h * math.pow(math.tan(self._calculate_inner_term(self.theta, self.n, u)), -1) + self.l
-        y = self.h * math.pow(math.tan(self._calculate_inner_term(self.theta, self.n, u)), -1) * math.sin(self._calculate_inner_term(self.gamma, self.n, v)) + self.d
+        y = self.h * math.pow(math.tan(self._calculate_inner_term(self.theta, self.n, u)), -1) * math.sin(self._calculate_inner_term(self.gamma, self.m, v)) + self.d
         z = 0
 
         return (x, y, z)
