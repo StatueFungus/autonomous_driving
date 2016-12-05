@@ -1,0 +1,7 @@
+<launch>
+    <node pkg="image_proc" type="image_proc" name="image_proc"></node>
+    <node pkg="autonomous_driving" type="inverse_perspective_mapping.py" name="inverse_perspective_mapping">
+        <remap from="image" to="image_rect_color"/>
+    </node>
+    <node pkg="rqt_image_view" type="rqt_image_view" name="rqt_image_view"></node>
+</launch>
