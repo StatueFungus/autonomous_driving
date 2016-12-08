@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from cameralib import Camera
+from imagepreprocessing import Camera
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 

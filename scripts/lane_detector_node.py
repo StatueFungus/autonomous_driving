@@ -3,7 +3,7 @@
 
 from imagepreprocessing import ImagePreparator
 from imagepreprocessing import Visualizer
-from cameralib import Camera
+from imagepreprocessing import Camera
 import rospy
 import cv2
 import numpy as np
