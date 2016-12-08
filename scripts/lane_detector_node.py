@@ -79,11 +79,11 @@ class LaneDetectorNode:
 					self.line_distance = new_line_distance
 					print self.line_distance
 				self.vis.draw_line(cv_image, (0, 425 - z), (639, 425 - z), (255,0,0), 1) # test linie auf canny
-				cv2.circle(cv_image, (self.left_point, 425 - z), 3, (0,255,0), 2) # linker test punkt
-				cv2.circle(cv_image, (self.right_point, 425 - z), 3, (0,255,0), 2) # rechter test punkt
+				self.vis.draw_point(cv_image, (self.left_point, 425 - z), 3, (0,255,0), 2) # linker test punkt
+				self.vis.draw_point(cv_image, (self.right_point, 425 - z), 3, (0,255,0), 2) # rechter test punkt
 				state_point_x = self.left_point + int((self.right_point - self.left_point) / 2.0)
-				cv2.circle(cv_image, (state_point_x, 425 - z), 3, (0,0,255), 2) # test mitte
-				cv2.line(cv_image, (319,0), (319,479), (255,0,0), 1) # test blickrichtung
+				self.vis.draw_point(cv_image, (state_point_x, 425 - z), 3, (0,0,255), 2) # test mitte
+				self.vis.draw_line(cv_image, (319,0), (319,479), (255,0,0), 1) # test blickrichtung
 			
 			self.vis.draw_line(cv_image, (0, 425 - z), (639, 425 - z), (255,0,0), 1) # test linie auf canny
 

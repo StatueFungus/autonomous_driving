@@ -41,3 +41,6 @@ class Visualizer:
 	    cv2.putText(image, text,position, cv2.FONT_HERSHEY_COMPLEX, size, color, 2, cv2.CV_AA)
 	elif imutils.is_cv3():
             cv2.putText(image, text,position, cv2.FONT_HERSHEY_COMPLEX, size, color, 2, cv2.LINE_AA)
+
+    def draw_point(self, image, point, radius, color, thickness):
+        cv2.circle(image, point, radius, color, thickness)
