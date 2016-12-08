@@ -27,7 +27,9 @@ class RoiNode:
 		except CvBridgeError as e:
 			rospy.logerr(e)
 
-		roi = self.img_prep.define_roi(cv_image, 0.58, 0.1)
+		above_value = rospy.get_param("/autonomous_driving/roi_node/above", 0)
+		below_value = rospy.get_param("/autonomous_driving/roi_node/below", 0)
+		roi = self.img_prep.define_roi(cv_image, above_value, below_value)
 
 		try:
 			self.image_pub.publish(self.bridge.cv2_to_imgmsg(roi, "bgr8"))

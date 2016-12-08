@@ -27,7 +27,10 @@ class CannyNode:
 		except CvBridgeError as e:
 			rospy.logerr(e)
 
-		canny = self.img_prep.edge_detection(cv_image, 50, 150, 3)
+		threshold_low = rospy.get_param("/autonomous_driving/canny_node/threshold_low", 50)
+		threshold_high = rospy.get_param("/autonomous_driving/canny_node/threshold_high", 150)
+		aperture = rospy.get_param("/autonomous_driving/canny_node/aperture", 3)
+		canny = self.img_prep.edge_detection(cv_image, threshold_low, threshold_high, aperture)
 
 		try:
 			self.image_pub.publish(self.bridge.cv2_to_imgmsg(canny, "mono8"))

@@ -27,7 +27,9 @@ class SmoothingNode:
 		except CvBridgeError as e:
 			rospy.logerr(e)
 
-		blurred = self.img_prep.blur(cv_image, (5,5), 0)
+		deviation = rospy.get_param("/autonomous_driving/smoothing_node/deviation", 5)
+		border = rospy.get_param("/autonomous_driving/smoothing_node/border", 0)
+		blurred = self.img_prep.blur(cv_image, (deviation,deviation), border)
 
 		try:
 			self.image_pub.publish(self.bridge.cv2_to_imgmsg(blurred, "mono8"))
