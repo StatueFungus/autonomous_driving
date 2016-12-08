@@ -48,7 +48,7 @@ class ImagePreparator:
         return cv2.GaussianBlur(image, deviation, border)
 
     def edge_detection(self, image, threshold1, threshold2, aperture):
-        return cv2.Canny(self.image, threshold1, threshold2, aperture)
+        return cv2.Canny(image, threshold1, threshold2, aperture)
 
     def filter_color(self, image, lower_color, upper_color):
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
