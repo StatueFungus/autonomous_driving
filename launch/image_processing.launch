@@ -3,8 +3,11 @@
     <node pkg="autonomous_driving" type="inverse_perspective_mapping.py" name="inverse_perspective_mapping">
         <remap from="image" to="image_rect_color"/>
     </node>
+    <node pkg="autonomous_driving" type="grayscale_node.py" name="grayscale_node">
+        <remap from="image" to="image_ipm"/>
+    </node>
     <node pkg="rqt_image_view" type="rqt_image_view" name="rqt_image_view"></node>
     <node pkg="autonomous_driving" type="lane_detector_node.py" name="lane_detector">
-    	<remap from="image" to="image_ipm"/>
+    	<remap from="image" to="image_grayscale"/>
     </node>
 </launch>
