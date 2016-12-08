@@ -56,8 +56,7 @@ class LaneDetectorNode:
 			rospy.logerr(e)		
 
 		img_prep2 = ImagePreparator(cv_image.copy())
-		img_prep2.define_roi(0.58, 0.1, 0)
-		img_prep2.grayscale()
+		#img_prep2.define_roi(0.58, 0.1, 0)
 		img_prep2.blur((5,5), 0)
 		# Canny oder Threshold benutzen                                                                                             
 		img_prep2.canny(50, 150, 3)
