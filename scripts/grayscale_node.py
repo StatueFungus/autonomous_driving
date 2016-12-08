@@ -1,23 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from detectionlib import ImagePreparator
+from imagepreprocessing import ImagePreparator
 import rospy
-import cv2
 import numpy as np
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
-NODE_NAME = "image_grayscale"
-SUB_TOPIC = "image_ipm"
-PUB_TOPIC = "debug_grayscale_image"
+NODE_NAME = "grayscale_node"
+SUB_TOPIC = "image"
+PUB_TOPIC = "image_grayscale"
+QUEUE_SIZE = 10
 
 class GrayscaleNode:
 
 	def __init__(self, sub_topic, pub_topic):
+		self.debug = debug
 		self.bridge = CvBridge()
+		self.img_prep = ImagePreparator() 
 		self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
-		self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=10)
+		self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
 		rospy.spin()
 
 	def callback(self, data):
@@ -26,11 +28,10 @@ class GrayscaleNode:
 		except CvBridgeError as e:
 			rospy.logerr(e)
 
-		image_prep = ImagePreparator(cv_image)
-		image_prep.grayscale()
+		gray = self.img_prep.grayscale(cv_image)
 
 		try:
-			self.image_pub.publish(self.bridge.cv2_to_imgmsg(image_prep.image, "mono8"))
+			self.image_pub.publish(self.bridge.cv2_to_imgmsg(gray, "mono8"))
 		except CvBridgeError as e:
 			rospy.logerr(e)
 
