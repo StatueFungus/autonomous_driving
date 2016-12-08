@@ -1,10 +1,21 @@
 <launch>
-    <node pkg="image_proc" type="image_proc" name="image_proc"></node>
-    <node pkg="autonomous_driving" type="inverse_perspective_mapping.py" name="inverse_perspective_mapping">
+    <node pkg="image_proc" type="image_proc" name="image_proc" ns="autonomous_driving" output="screen"></node>
+    <node pkg="autonomous_driving" type="inverse_perspective_mapping.py" name="inverse_perspective_mapping" ns="autonomous_driving">
         <remap from="image" to="image_rect_color"/>
     </node>
     <node pkg="rqt_image_view" type="rqt_image_view" name="rqt_image_view"></node>
-    <node pkg="autonomous_driving" type="lane_detector_node.py" name="lane_detector">
+    <node pkg="autonomous_driving" type="lane_detector_node.py" name="lane_detector" ns="autonomous_driving">
     	<remap from="image" to="image_ipm"/>
+    </node>
+
+    <node pkg="pid" type="controller" name="controller" ns="autonomous_driving" output="screen" >
+		<param name="Kp" value="5.0" />
+		<param name="Ki" value="0.0" />
+		<param name="Kd" value="0.1" />
+		<param name="upper_limit" value="100" />
+		<param name="lower_limit" value="-100" />
+		<param name="windup_limit" value="10" />
+		<param name="max_loop_frequency" value="100.0" />
+		<param name="min_loop_frequency" value="100.0" />
     </node>
 </launch>

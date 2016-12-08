@@ -10,12 +10,15 @@ import rospy
 import cv2
 import numpy as np
 from sensor_msgs.msg import Image
+from std_msgs.msg import Float64
 from cv_bridge import CvBridge, CvBridgeError
 
 NODE_NAME = "lane_tracking"
 SUB_TOPIC = "image"
 PUB_TOPIC = "debug_image"
 PUB_DEBUG_TOPIC = "debug_image_canny"
+PUB_SETPOINT_TOPIC = "setpoint"
+PUB_STATE_TOPIC = "state"
 
 class LaneModel:
 	def __init__(self, intersection_points_count, intersection_point_distance):
@@ -36,13 +39,15 @@ class LanePoint:
 
 class LaneDetectorNode:
 
-	def __init__(self, sub_topic, pub_topic, pub_debug_topic):
+	def __init__(self, sub_topic, pub_topic, pub_debug_topic, pub_setpoint_topic, pub_state_topic):
 		self.line_filter = LineFilter()
 		self.lane_detector = LaneDetector()
 		self.bridge = CvBridge()
 		self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
 		self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=10)
 		self.image_debug_pub = rospy.Publisher(pub_debug_topic, Image, queue_size=10)
+		self.setpoint_pub = rospy.Publisher(pub_setpoint_topic, Float64, queue_size=10)
+		self.state_pub = rospy.Publisher(pub_state_topic, Float64, queue_size=10)
 
 		self.left_point = None
 		self.right_point = None
@@ -72,6 +77,8 @@ class LaneDetectorNode:
 		#cv2.line(img_prep2.image, (32 + int((p1[1] - min_x) * x_factor), 479 - int(p1[0] * y_factor)), (int((p4[1] - min_x) * x_factor), 479 - int(p4[0] * y_factor)), (0,0,0), 2)
 		#cv2.line(img_prep2.image, (-33 + int((p2[1] - min_x) * x_factor), 479 - int(p2[0] * y_factor)), (int((p3[1] - min_x) * x_factor), 479 - int(p3[0] * y_factor)), (0,0,0), 2)
 
+		state_point_x = None
+
 		for i in range(1):
 			z = 10 * i
 			arr = np.array(np.nonzero(img[425 - z])[0])
@@ -90,7 +97,8 @@ class LaneDetectorNode:
 				vis.draw_line((0, 425 - z), (639, 425 - z), (255,0,0), 1) # test linie auf canny
 				cv2.circle(cv_image, (self.left_point, 425 - z), 3, (0,255,0), 2) # linker test punkt
 				cv2.circle(cv_image, (self.right_point, 425 - z), 3, (0,255,0), 2) # rechter test punkt
-				cv2.circle(cv_image, (self.left_point + int((self.right_point - self.left_point) / 2.0), 425 - z), 3, (0,0,255), 2) # test mitte
+				state_point_x = self.left_point + int((self.right_point - self.left_point) / 2.0)
+				cv2.circle(cv_image, (state_point_x, 425 - z), 3, (0,0,255), 2) # test mitte
 				cv2.line(cv_image, (319,0), (319,479), (255,0,0), 1) # test blickrichtung
 			
 			vis.draw_line((0, 425 - z), (639, 425 - z), (255,0,0), 1) # test linie auf canny
@@ -98,6 +106,9 @@ class LaneDetectorNode:
 		try:
 			self.image_debug_pub.publish(self.bridge.cv2_to_imgmsg(img_prep2.image, "8UC1"))
 			self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
+			self.setpoint_pub.publish(0.0)
+			if state_point_x != None:
+				self.state_pub.publish(state_point_x - 320)
 		except CvBridgeError as e:
 			rospy.logerr(e)
 
@@ -161,7 +172,7 @@ def main():
 	# Initialisiere den Knoten
 	rospy.init_node(NODE_NAME, anonymous=True)
 	try:
-		ld_node = LaneDetectorNode(SUB_TOPIC, PUB_TOPIC, PUB_DEBUG_TOPIC)
+		ld_node = LaneDetectorNode(SUB_TOPIC, PUB_TOPIC, PUB_DEBUG_TOPIC, PUB_SETPOINT_TOPIC, PUB_STATE_TOPIC)
 	except KeyboardInterrupt:
 		rospy.loginfo("Shutting down node %s", NODE_NAME)
 
