@@ -15,7 +15,6 @@ QUEUE_SIZE = 10
 class GrayscaleNode:
 
 	def __init__(self, sub_topic, pub_topic):
-		self.debug = debug
 		self.bridge = CvBridge()
 		self.img_prep = ImagePreparator() 
 		self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
