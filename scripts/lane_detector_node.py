@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from detectionlib import ImagePreparator
-from detectionlib import LineFilter
-from detectionlib import LaneDetector
-from detectionlib import Visualizer
+from imagepreprocessing import ImagePreparator
+from imagepreprocessing import Visualizer
 from cameralib import Camera
 import rospy
 import cv2
@@ -39,8 +37,7 @@ class LanePoint:
 class LaneDetectorNode:
 
 	def __init__(self, sub_topic, pub_topic, pub_setpoint_topic, pub_state_topic):
-		self.line_filter = LineFilter()
-		self.lane_detector = LaneDetector()
+		self.vis = Visualizer()
 		self.bridge = CvBridge()
 		self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
 		self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=10)
@@ -59,8 +56,6 @@ class LaneDetectorNode:
 			rospy.logerr(e)
 
 		print "---------------------"
-
-		vis = Visualizer(cv_image)
 		
 		#schwarze linien auf dem canny um aeussere raender zu entfernen (muss auf jeden fall dynamisch sein)
 		#cv2.line(img_prep2.image, (32 + int((p1[1] - min_x) * x_factor), 479 - int(p1[0] * y_factor)), (int((p4[1] - min_x) * x_factor), 479 - int(p4[0] * y_factor)), (0,0,0), 2)
@@ -83,14 +78,14 @@ class LaneDetectorNode:
 				if abs(new_line_distance - self.line_distance) < int(self.line_distance * 0.55):
 					self.line_distance = new_line_distance
 					print self.line_distance
-				vis.draw_line((0, 425 - z), (639, 425 - z), (255,0,0), 1) # test linie auf canny
+				self.vis.draw_line(cv_image, (0, 425 - z), (639, 425 - z), (255,0,0), 1) # test linie auf canny
 				cv2.circle(cv_image, (self.left_point, 425 - z), 3, (0,255,0), 2) # linker test punkt
 				cv2.circle(cv_image, (self.right_point, 425 - z), 3, (0,255,0), 2) # rechter test punkt
 				state_point_x = self.left_point + int((self.right_point - self.left_point) / 2.0)
 				cv2.circle(cv_image, (state_point_x, 425 - z), 3, (0,0,255), 2) # test mitte
 				cv2.line(cv_image, (319,0), (319,479), (255,0,0), 1) # test blickrichtung
 			
-			vis.draw_line((0, 425 - z), (639, 425 - z), (255,0,0), 1) # test linie auf canny
+			self.vis.draw_line(cv_image, (0, 425 - z), (639, 425 - z), (255,0,0), 1) # test linie auf canny
 
 		try:
 			self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
