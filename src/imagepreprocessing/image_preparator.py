@@ -51,6 +51,10 @@ class ImagePreparator:
         return cv2.Canny(self.image, threshold1, threshold2, aperture)
 
     def filter_color(self, image, lower_color, upper_color):
-        color_mask = cv2.inRange(self.image, np.array([lower_color,lower_color,lower_color]), np.array([upper_color,upper_color,upper_color]))
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        lower_color = np.array(lower_color, np.uint8)
+        upper_color = np.array(upper_color, np.uint8)
+
+        color_mask = cv2.inRange(hsv, lower_color, upper_color)
         return cv2.bitwise_and(image, image, mask=color_mask)
 
