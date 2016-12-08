@@ -3,12 +3,15 @@
     <node pkg="autonomous_driving" type="inverse_perspective_mapping.py" name="inverse_perspective_mapping" ns="autonomous_driving">
         <remap from="image" to="image_rect_color"/>
     </node>
+    <node pkg="autonomous_driving" type="roi_node.py" name="roi_node" ns="autonomous_driving">
+        <remap from="image" to="image_preproc_ipm"/>
+    </node>
     <node pkg="autonomous_driving" type="grayscale_node.py" name="grayscale_node" ns="autonomous_driving">
-        <remap from="image" to="image_ipm"/>
+        <remap from="image" to="image_preproc_roi"/>
     </node>
     <node pkg="rqt_image_view" type="rqt_image_view" name="rqt_image_view"></node>
     <node pkg="autonomous_driving" type="lane_detector_node.py" name="lane_detector" ns="autonomous_driving">
-    	<remap from="image" to="image_grayscale"/>
+    	<remap from="image" to="image_preproc_grayscale"/>
     </node>
 
     <node pkg="pid" type="controller" name="controller" ns="autonomous_driving" output="screen" >
