@@ -11,7 +11,7 @@ import numpy as np
 
 NODE_NAME = "inverse_perspective_mapping_node"
 SUB_TOPIC = "image"
-PUB_TOPIC = "image_ipm"
+PUB_TOPIC = "image_preproc_ipm"
 
 
 class InversePerspectiveMappingNode:
