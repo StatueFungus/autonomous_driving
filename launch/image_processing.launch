@@ -23,7 +23,7 @@
         <param name="aperture" type="int" value="3" />
     </node>
     <node pkg="rqt_image_view" type="rqt_image_view" name="rqt_image_view"></node>
-    <node pkg="autonomous_driving" type="lane_detector_node.py" name="lane_detector" ns="autonomous_driving">
+    <node pkg="autonomous_driving" type="lane_tracking_node.py" name="lane_tracking_node" ns="autonomous_driving">
     	<remap from="image" to="image_preproc_canny"/>
     </node>
 
