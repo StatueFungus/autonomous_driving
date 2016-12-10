@@ -1,6 +1,6 @@
 <launch>
     <node pkg="image_proc" type="image_proc" name="image_proc" ns="autonomous_driving" output="screen"></node>
-    <node pkg="autonomous_driving" type="inverse_perspective_mapping.py" name="inverse_perspective_mapping" ns="autonomous_driving">
+    <node pkg="autonomous_driving" type="inverse_perspective_mapping_node.py" name="inverse_perspective_mapping_node" ns="autonomous_driving">
         <remap from="image" to="image_rect_color"/>
     </node>
     <node pkg="autonomous_driving" type="roi_node.py" name="roi_node" ns="autonomous_driving">

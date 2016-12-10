@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from imagepreprocessing import Camera
+from imagepreprocessing import ImagePreparator
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
@@ -19,6 +20,7 @@ class InversePerspectiveMappingNode:
 	def __init__(self, sub_topic, pub_topic):
 
 		self.camera = Camera(h=20, aperture=90)
+		self.img_prep = ImagePreparator()
 		self.bridge = CvBridge()
 		self.horizon_y = self._calculate_horizon()
 
@@ -52,8 +54,7 @@ class InversePerspectiveMappingNode:
 		        [p4_new[0], p4_new[1]]
 		], dtype = "float32")
 
-		M = cv2.getPerspectiveTransform(rect, dst)
-		warped = cv2.warpPerspective(cv_image, M, (640, 480))
+		warped = self.img_prep.warp_perspective(cv_image, rect, dst, (640,480))
 
 		try:
 			self.image_pub.publish(self.bridge.cv2_to_imgmsg(warped, "bgr8"))
