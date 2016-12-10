@@ -1,4 +1,3 @@
 from lane_detector import LaneDetector
-from lane_model import LaneModel 
-from lane_point import LanePoint
-from segment import Segment
+from lane_model import LaneModel
+from segment_model import SegmentModel
