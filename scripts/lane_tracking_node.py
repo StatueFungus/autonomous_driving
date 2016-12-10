@@ -34,7 +34,6 @@ class LaneTrackingNode:
 		self.lane_model.update_segments(cv_image.copy())
 		self.lane_model.draw_segments(cv_image)
 		state_point_x = self.lane_model.state_point_x()
-		#state_point_x = None
 
 		try:
 			self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
