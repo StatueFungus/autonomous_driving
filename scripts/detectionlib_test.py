@@ -35,10 +35,8 @@ def main():
         [350, 699],
         [298, 699]], dtype = "float32")
 
-        M = cv2.getPerspectiveTransform(rect, dst)
-        warped = cv2.warpPerspective(image, M, (640, 700))
-
         # Aufbereitung des Bilder
+        warped = img_prep.warp_perspective(image.copy(), rect, dst, (640, 700))
         roi = img_prep.define_roi(warped, 0.6, 0, 0.40)
         gray = img_prep.grayscale(roi)
         blur = img_prep.blur(gray, (5,5), 0)
