@@ -40,10 +40,13 @@ class SegmentModel:
 			self.point_center = self.left_point + int((self.right_point - self.left_point) / 2.0)
 
 	def _calc_non_zero(self, image):
-		_,width,_ = image.shape
-		x_separator = int(width / 2)
+		if self.point_center:
+			separator = self.point_center
+		else:
+			_,width,_ = image.shape
+			separator = int(width / 2)
 		arr = np.array(np.nonzero(image[self.y_offset])[0])
-		nz_lp, nz_rp =  [arr[arr<x_separator], arr[~(arr<x_separator)]]
+		nz_lp, nz_rp =  [arr[arr<separator], arr[~(arr<separator)]]
 		nz_lp, nz_rp = np.unique(nz_lp), np.unique(nz_rp) # entferne doppelte Werte
 		nz_lp = nz_lp[::-1] # invertiere liste
 		return nz_lp, nz_rp
