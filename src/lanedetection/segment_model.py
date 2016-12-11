@@ -44,5 +44,15 @@ class SegmentModel:
 		x_separator = int(width / 2)
 		arr = np.array(np.nonzero(image[self.y_offset])[0])
 		nz_lp, nz_rp =  [arr[arr<x_separator], arr[~(arr<x_separator)]]
+		nz_lp, nz_rp = np.unique(nz_lp), np.unique(nz_rp) # entferne doppelte Werte
 		nz_lp = nz_lp[::-1] # invertiere liste
 		return nz_lp, nz_rp
+
+	def __str__(self):
+		ret = "SegmentModel {\n"
+		ret += "\ty_offset : " + str(self.y_offset) + "\n"
+		ret += "\tnz_left_points : " + np.array_str(self.nz_left_points) + "\n"
+		ret += "\tnz_right_points : " + np.array_str(self.nz_right_points) + "\n"
+		ret += "\tpoint_center : " + str(self.point_center) + "\n"
+		ret += "}\n"
+		return ret
