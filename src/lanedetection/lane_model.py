@@ -3,7 +3,7 @@
 from segment_model import SegmentModel
 from lane_detector import LaneDetector
 
-SEGMENT_GAB = 10
+SEGMENT_GAB = 5
 
 class LaneModel:
 
@@ -18,7 +18,7 @@ class LaneModel:
 		for seg in self.segments:
 			seg.update_non_zero_points(image)
 			seg.left_point, seg.right_point = self.lane_detector.find_lane_points(seg)
-			seg.update_point_distance()
+			#seg.update_point_distance() # für geraden funktioniert das besser ohne dieses update
 			seg.update_point_center()
 
 	def draw_segments(self, image):
