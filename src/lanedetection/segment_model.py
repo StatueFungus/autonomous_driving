@@ -17,13 +17,14 @@ class SegmentModel:
 
 	def draw(self, image):
 		height,width,_ = image.shape
-		self.vis.draw_line(image, (0, self.y_offset), (width, self.y_offset), (255,0,0), 1)
+		size = 1
+		self.vis.draw_line(image, (0, self.y_offset), (width, self.y_offset), (255,0,0), size)
 		if self.left_point:
-			self.vis.draw_point(image, (self.left_point, self.y_offset), 3, (0,255,0), 2)
+			self.vis.draw_point(image, (self.left_point, self.y_offset), 3, (0,255,0), size)
 		if self.right_point:
-			self.vis.draw_point(image, (self.right_point, self.y_offset), 3, (0,255,0), 2)
+			self.vis.draw_point(image, (self.right_point, self.y_offset), 3, (0,255,0), size)
 		if self.point_center:
-			self.vis.draw_point(image, (self.point_center, self.y_offset), 3, (0,0,255), 2)
+			self.vis.draw_point(image, (self.point_center, self.y_offset), 3, (0,0,255), size)
 
 	def update_non_zero_points(self, image):
 		self.nz_left_points, self.nz_right_points = self._calc_non_zero(image)
