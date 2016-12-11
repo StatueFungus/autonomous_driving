@@ -37,7 +37,7 @@ class SegmentModel:
 
 	def update_point_center(self):
 		if self.left_point and self.right_point:
-			self.point_center = self.left_point + int((self.right_point - self.left_point) / 2.0)
+			self.point_center = int((self.left_point + self.right_point) / 2)
 
 	def _calc_non_zero(self, image):
 		if self.point_center:
