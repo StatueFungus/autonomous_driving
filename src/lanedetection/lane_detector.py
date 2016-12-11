@@ -16,7 +16,7 @@ class LaneDetector:
 			if len(left_points) > idx + 1 and left_points[idx + 1] in range(p - 3, p):
 				print  "%s: Moegliche linke Spur" % p
 				left_points_score[p] += 1
-			if any(right_point in right_points for right_point in range(p + line_distance - 2, p + line_distance + 3)):
+			if any(rp in right_points for rp in range(p + line_distance - 2, p + line_distance + 3)):
 				print "%s: Hat rechte Gegenspur" % p
 				left_points_score[p] += 5
 			if left_point != None and p in range(left_point - 4, left_point + 5):
@@ -29,7 +29,7 @@ class LaneDetector:
 			if len(right_points) > idx + 1 and right_points[idx + 1] in range(p, p + 5):
 				print  "%s: Moegliche rechte Spur" % p
 				right_points_score[p] += 1
-			if any(left_point in left_points for left_point in range(p - line_distance - 3, p - line_distance + 2)):
+			if any(lp in left_points for lp in range(p - line_distance - 3, p - line_distance + 2)):
 				print "%s: Hat linke Gegenspur" % p
 				right_points_score[p] += 5
 			if right_point != None and p in range(right_point - 4, right_point + 5):
