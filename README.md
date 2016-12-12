@@ -63,7 +63,7 @@ catkin_make
 ```
 
 Bevor der Workspace gebaut werden kann, müssen evtl noch nötige Dependencies installiert werden.
-Dafür kann einfachd er Befehl 
+Dafür kann einfach der Befehl 
 
 ```shell
 rosdep install autonomous_driving
