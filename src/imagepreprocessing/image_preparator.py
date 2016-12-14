@@ -3,11 +3,12 @@
 import cv2
 import numpy as np
 
+
 class ImagePreparator:
 
     def define_roi(self, image, above=0.0, below=0.0, side=0.0):
-        ''' 
-            Bildbereiche welche nicht von Interesse sind werden geschwaerzt. 
+        '''
+            Bildbereiche welche nicht von Interesse sind werden geschwaerzt.
 
             Parameter
             ---------
@@ -25,22 +26,22 @@ class ImagePreparator:
             Rueckgabe
             ---------
             image : maskiertes Bild
-        
+
         '''
         height, width, channels = image.shape
-        color_black = (0,0,0)
+        color_black = (0, 0, 0)
         # maskiert untere Bildhäfte
-        image[height - int((height*below)):height,:] = color_black
+        image[height - int((height*below)):height, :] = color_black
         # definiere Punkte für Polygon und maskiert die obere und seitliche Bildhälfte
 
-        pts = np.array([[0,0],[0,int(height*(above+0.15))],[int(width*side),int(height*above)],[width-int(width*side),int(height*above)],[width,int(height*(above+0.15))],[width,0]], np.int32)
+        pts = np.array([[0, 0], [0, int(height*(above+0.15))], [int(width*side), int(height*above)], [width-int(width*side), int(height*above)], [width, int(height*(above+0.15))], [width, 0]], np.int32)
         cv2.fillPoly(image, [pts], color_black)
         return image
 
     def grayscale(self, image):
-        ''' 
+        '''
             Bild wird in Graustufen konvertiert
-        
+
         '''
         return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -61,4 +62,3 @@ class ImagePreparator:
 
         color_mask = cv2.inRange(hsv, lower_color, upper_color)
         return cv2.bitwise_and(image, image, mask=color_mask)
-

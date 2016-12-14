@@ -1,19 +1,21 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import cv2, imutils
+import cv2
+import imutils
+
 
 class Visualizer:
     ''' Klasse welche Methoden anbietet um Text und Linien auf ein Bild zu rendern und dieses anzuzeigen '''
 
     def show(self, image, title='image'):
-        ''' 
-            Zeigt das Bild (self.image) in einem Fenter an. 
-            
+        '''
+            Zeigt das Bild (self.image) in einem Fenter an.
+
             Parameter
             ---------
             text : String
                 optionale Angabe eines Titels
-        
+
         '''
         cv2.imshow(title, image)
         cv2.waitKey(1)
@@ -37,10 +39,10 @@ class Visualizer:
                 Position des Textes >> (x,y)
 
         '''
-	if imutils.is_cv2():
-	    cv2.putText(image, text,position, cv2.FONT_HERSHEY_COMPLEX, size, color, 2, cv2.CV_AA)
-	elif imutils.is_cv3():
-            cv2.putText(image, text,position, cv2.FONT_HERSHEY_COMPLEX, size, color, 2, cv2.LINE_AA)
+        if imutils.is_cv2():
+            cv2.putText(image, text, position, cv2.FONT_HERSHEY_COMPLEX, size, color, 2, cv2.CV_AA)
+        elif imutils.is_cv3():
+                cv2.putText(image, text, position, cv2.FONT_HERSHEY_COMPLEX, size, color, 2, cv2.LINE_AA)
 
     def draw_point(self, image, point, radius, color, thickness):
         cv2.circle(image, point, radius, color, thickness)
