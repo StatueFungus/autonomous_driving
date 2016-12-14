@@ -1,41 +1,45 @@
 <launch>
     <node pkg="image_proc" type="image_proc" name="image_proc" ns="autonomous_driving" output="screen"></node>
+    
+    <!-- Inverse Perspective Mapping -->
     <node pkg="autonomous_driving" type="inverse_perspective_mapping_node.py" name="inverse_perspective_mapping_node" ns="autonomous_driving" output="screen">
         <remap from="image" to="image_rect_color"/>
         <param name="camera/height" type="int" value="20" />
         <param name="camera/aperture" type="int" value="140" />
     </node>
+
+    <!-- Region of Interest -->
     <node pkg="autonomous_driving" type="roi_node.py" name="roi_node" ns="autonomous_driving">
         <remap from="image" to="image_preproc_ipm"/>
         <param name="above" type="double" value="0.58" />
         <param name="below" type="double" value="0.1" />
     </node>
+
+    <!-- Greyscale -->
     <node pkg="autonomous_driving" type="grayscale_node.py" name="grayscale_node" ns="autonomous_driving">
         <remap from="image" to="image_preproc_roi"/>
     </node>
+
+    <!-- Gaussian Blur -->
     <node pkg="autonomous_driving" type="smoothing_node.py" name="smoothing_node" ns="autonomous_driving">
         <remap from="image" to="image_preproc_grayscale"/>
         <param name="deviation" type="int" value="3" />
         <param name="border" type="int" value="0" />
     </node>
+
+    <!-- Canny Edge Detection -->
     <node pkg="autonomous_driving" type="canny_node.py" name="canny_node" ns="autonomous_driving">
         <remap from="image" to="image_preproc_smooth"/>
         <param name="threshold_low" type="int" value="50" />
         <param name="threshold_high" type="int" value="150" />
         <param name="aperture" type="int" value="3" />
     </node>
+
+    <!-- Lane Tracking (Should be moved to another launch file) -->
     <node pkg="autonomous_driving" type="lane_tracking_node.py" name="lane_tracking_node" ns="autonomous_driving" output="screen">
-    	<remap from="image" to="image_preproc_canny"/>
+        <remap from="image" to="image_preproc_canny"/>
     </node>
-    <node pkg="pid" type="controller" name="controller" ns="autonomous_driving" output="screen" >
-		<param name="Kp" value="5.0" />
-		<param name="Ki" value="0.0" />
-		<param name="Kd" value="0.1" />
-		<param name="upper_limit" value="100" />
-		<param name="lower_limit" value="-100" />
-		<param name="windup_limit" value="10" />
-		<param name="max_loop_frequency" value="100.0" />
-		<param name="min_loop_frequency" value="100.0" />
-    </node>
+    
+    <!-- Image Viewer (Only for testing) -->
     <node pkg="rqt_image_view" type="rqt_image_view" name="rqt_image_view"></node>
 </launch>
