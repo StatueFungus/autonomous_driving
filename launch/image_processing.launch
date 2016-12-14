@@ -1,7 +1,9 @@
 <launch>
     <node pkg="image_proc" type="image_proc" name="image_proc" ns="autonomous_driving" output="screen"></node>
-    <node pkg="autonomous_driving" type="inverse_perspective_mapping_node.py" name="inverse_perspective_mapping_node" ns="autonomous_driving">
+    <node pkg="autonomous_driving" type="inverse_perspective_mapping_node.py" name="inverse_perspective_mapping_node" ns="autonomous_driving" output="screen">
         <remap from="image" to="image_rect_color"/>
+        <param name="camera/height" type="int" value="20" />
+        <param name="camera/aperture" type="int" value="140" />
     </node>
     <node pkg="autonomous_driving" type="roi_node.py" name="roi_node" ns="autonomous_driving">
         <remap from="image" to="image_preproc_ipm"/>
@@ -13,7 +15,7 @@
     </node>
     <node pkg="autonomous_driving" type="smoothing_node.py" name="smoothing_node" ns="autonomous_driving">
         <remap from="image" to="image_preproc_grayscale"/>
-        <param name="deviation" type="int" value="5" />
+        <param name="deviation" type="int" value="3" />
         <param name="border" type="int" value="0" />
     </node>
     <node pkg="autonomous_driving" type="canny_node.py" name="canny_node" ns="autonomous_driving">
@@ -22,11 +24,9 @@
         <param name="threshold_high" type="int" value="150" />
         <param name="aperture" type="int" value="3" />
     </node>
-    <node pkg="rqt_image_view" type="rqt_image_view" name="rqt_image_view"></node>
-    <node pkg="autonomous_driving" type="lane_tracking_node.py" name="lane_tracking_node" ns="autonomous_driving">
+    <node pkg="autonomous_driving" type="lane_tracking_node.py" name="lane_tracking_node" ns="autonomous_driving" output="screen">
     	<remap from="image" to="image_preproc_canny"/>
     </node>
-
     <node pkg="pid" type="controller" name="controller" ns="autonomous_driving" output="screen" >
 		<param name="Kp" value="5.0" />
 		<param name="Ki" value="0.0" />
@@ -37,4 +37,5 @@
 		<param name="max_loop_frequency" value="100.0" />
 		<param name="min_loop_frequency" value="100.0" />
     </node>
+    <node pkg="rqt_image_view" type="rqt_image_view" name="rqt_image_view"></node>
 </launch>
