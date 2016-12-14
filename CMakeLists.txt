@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(autonomous_driving)
 
+add_definitions(-std=c++11)
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -132,9 +134,21 @@ include_directories(
 ## either from message generation or dynamic reconfigure
 # add_dependencies(autonomous_driving ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+set(rovercontrol_SRCS
+  src/rovercontrol/main.cpp
+  src/rovercontrol/communication.cpp
+  src/rovercontrol/flightcontroller.h
+  src/rovercontrol/phwrap.cpp
+  src/rovercontrol/maia.cpp
+  src/rovercontrol/controller.h
+  src/rovercontrol/rovercontroller.h
+  src/rovercontrol/rovercontroller.cpp
+)
+
 ## Declare a C++ executable
 add_executable(offboard_node src/offboard_mode.cpp)
 add_executable(actuator_control src/actuator_control.cpp)
+add_executable(rovercontrol ${rovercontrol_SRCS})
 
 #add_executable(autonomous_driving_node src/offboard_mode.cpp)
 ## Add cmake target dependencies of the executable
@@ -147,6 +161,10 @@ target_link_libraries(offboard_node
 )
 
 target_link_libraries(actuator_control
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(rovercontrol
   ${catkin_LIBRARIES}
 )
 
