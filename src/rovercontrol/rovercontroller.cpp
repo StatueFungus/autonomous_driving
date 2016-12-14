@@ -6,7 +6,11 @@ using namespace std;
 RoverController::RoverController(RosController* rosController)
 {
     // Subscriber for throttle and yaw
-    subRoverControl = rosController->getNodeHandle()->subscribe("rovercontrol/rover_control", 1, &RoverController::onIncomingRoverControl, this);
+    subSteering = rosController->getNodeHandle()->subscribe("rovercontrol/steering", 1, &RoverController::onIncomingSteering, this);
+    subThrottle = rosController->getNodeHandle()->subscribe("rovercontrol/throttle", 1, &RoverController::onIncomingThrottle, this);
+
+    desiredSteering = 0.0;
+    desiredThrottle = 0.0;
 }
 
  RoverController::~RoverController()
@@ -18,10 +22,16 @@ void RoverController::calculateYT()
     // Implemented in the python nodes
 }
 
-void RoverController::onIncomingRoverControl( mavros_msgs::ActuatorControl::ConstPtr msg)
+void RoverController::onIncomingSteering(std_msgs::Float64::ConstPtr msg)
 {
-    desiredSteering = msg->controls[0];
-    desiredThrottle = msg->controls[3];
+    desiredSteering = msg->data;
+
+    this->signal();
+}
+
+void RoverController::onIncomingThrottle(std_msgs::Float64::ConstPtr msg)
+{
+    desiredThrottle = msg->data;
 
     this->signal();
 }

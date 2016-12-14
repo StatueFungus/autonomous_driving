@@ -18,5 +18,8 @@
     </node>
 
     <!-- Acutator Control -->
-    <node pkg="autonomous_driving" type="rovercontrol" name="maia" output="screen" ns="autonomous_driving" unless="$(arg debug)"></node>
+    <node pkg="autonomous_driving" type="rovercontrol" name="maia" output="screen" ns="autonomous_driving" unless="$(arg debug)">
+    	<remap from="rovercontrol/steering" to="rovercontrol/steering"/>
+	<remap from="rovercontrol/throttle" to="rovercontrol/throttle"/>
+    </node>
 </launch>

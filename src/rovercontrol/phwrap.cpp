@@ -38,15 +38,12 @@ void PHwrap::disable()
     enabled_ = false;
     std::cout << "Pixhawk_Wrapper State: Off" << std::endl;
 
-    arm_cmd.request.value = false;
-    if(isArmed_ && armingClient_.call(arm_cmd) && arm_cmd.response.success) {
-        ROS_INFO("Vehicle disarmed");
-    }
-
     offb_set_mode.request.custom_mode = "MANUAL";
     if( modeClient_.call(offb_set_mode) && offb_set_mode.response.success){
         ROS_INFO("Manual enabled");
     }
+
+    setOutput(0,0,0,0,true);
 }
 
 void PHwrap::setOutput(double roll, double pitch, double yaw, double throttle, bool overwrite)
@@ -71,23 +68,6 @@ void PHwrap::update()
 
     switch(currentState_) {
     case PixhawkState::Off:
-        // Disarm
-        if(ros::Time::now() - lastRequest_ > ros::Duration(5.0)) {
-            lastRequest_ = ros::Time::now();
-            arm_cmd.request.value = false;
-            if(isArmed_ && armingClient_.call(arm_cmd) && arm_cmd.response.success) {
-                ROS_INFO("Vehicle disarmed");
-            }
-        }
-
-        if(ros::Time::now() - lastRequest_ > ros::Duration(5.0)) {
-            lastRequest_ = ros::Time::now();
-            offb_set_mode.request.custom_mode = "MANUAL";
-            if( modeClient_.call(offb_set_mode) && offb_set_mode.response.success){
-                ROS_INFO("Manual enabled");
-            }
-        }
-
         setOutput(0,0,0,0,true);
 
         if(this->isEnabled())
@@ -104,31 +84,30 @@ void PHwrap::update()
         break;
 
     case PixhawkState::SettingMode:
-        if(ros::Time::now() - lastRequest_ > ros::Duration(5.0)) {
+        if(isInOffboard_) {
+            currentState_ = PixhawkState::Arming;
+            std::cout << "Pixhawk_Wrapper State: Arming" << std::endl;
+        }
+        else if(ros::Time::now() - lastRequest_ > ros::Duration(5.0)) {
             lastRequest_ = ros::Time::now();
             offb_set_mode.request.custom_mode = "OFFBOARD";
             if( modeClient_.call(offb_set_mode) && offb_set_mode.response.success){
                 ROS_INFO("Offboard enabled");
             }
         }
-
-        if(isInOffboard_) {
-            currentState_ = PixhawkState::Arming;
-            std::cout << "Pixhawk_Wrapper State: Arming" << std::endl;
-        }
         break;
     case PixhawkState::Arming:
-        if(ros::Time::now() - lastRequest_ > ros::Duration(5.0)) {
-            lastRequest_ = ros::Time::now();
-            arm_cmd.request.value = true; // should be true when in automatic mode
-            if( armingClient_.call(arm_cmd) && arm_cmd.response.success) {
-                ROS_INFO("Vehicle armed");
-            }
-        }
         if(isArmed_) {
             // Go to driving
             currentState_ = PixhawkState::Driving;
             std::cout << "Pixhawk_Wrapper State: Driving" << std::endl;
+        }
+        else if(ros::Time::now() - lastRequest_ > ros::Duration(5.0)) {
+            lastRequest_ = ros::Time::now();
+            arm_cmd.request.value = true; // should be true when in automatic mode
+            if( armingClient_.call(arm_cmd) && arm_cmd.response.success) {
+                    ROS_INFO("Vehicle armed");
+            }
         }
         break;
     case PixhawkState::Driving:

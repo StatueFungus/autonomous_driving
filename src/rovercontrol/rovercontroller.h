@@ -2,7 +2,7 @@
 #define ROVERCONTROLLER_H
 
 #include "controller.h"
-#include <mavros_msgs/ActuatorControl.h>
+#include <std_msgs/Float64.h>
 
 class RoverController : public Controller
 {
@@ -13,8 +13,11 @@ public:
     void calculateYT();
 
 private:
-    ros::Subscriber subRoverControl;
-    void onIncomingRoverControl(mavros_msgs::ActuatorControl::ConstPtr msg);
+    ros::Subscriber subSteering;
+    ros::Subscriber subThrottle;
+
+    void onIncomingSteering(std_msgs::Float64::ConstPtr msg);
+    void onIncomingThrottle(std_msgs::Float64::ConstPtr msg);
 };
 
 #endif // ROVERCONTROLLER_H
