@@ -1,4 +1,8 @@
 <launch>
+    
+    <arg name="debug" default="false" />
+    
+    <!-- Remove Image Distortion and rectification-->
     <node pkg="image_proc" type="image_proc" name="image_proc" ns="autonomous_driving" output="screen"></node>
     
     <!-- Inverse Perspective Mapping -->
@@ -41,5 +45,5 @@
     </node>
     
     <!-- Image Viewer (Only for testing) -->
-    <node pkg="rqt_image_view" type="rqt_image_view" name="rqt_image_view"></node>
+    <node pkg="rqt_image_view" type="rqt_image_view" name="rqt_image_view" if="$(arg debug)"></node>
 </launch>

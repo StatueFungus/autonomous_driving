@@ -1,1 +1,10 @@
-TODO: include all other launchfiles
+<launch>
+
+	<arg name="debug" default="false" />
+
+	<include file="$(find autonomous_driving)/launch/camera.launch" unless="$(arg debug)"></include>
+	<include file="$(find autonomous_driving)/launch/image_processing.launch">
+		<arg name="debug" value="$(arg debug)" />
+	</include>
+	<include file="$(find autonomous_driving)/launch/rovercontrol.launch" unless="$(arg debug)"></include>
+</launch>
