@@ -1,10 +1,12 @@
 <launch>
 
+    <arg name="debug" default="false" />
+
     <!-- Pixhawk MAVROS -->
-    <include file="$(find mavros)/launch/px4.launch"></include>
+    <include file="$(find mavros)/launch/px4.launch" unless="$(arg debug)"></include>
 
     <!-- PID Controller -->
-    <node pkg="pid" type="controller" name="controller" ns="autonomous_driving" output="screen" >
+    <node pkg="pid" type="controller" name="controller" ns="autonomous_driving" output="screen" if="$(arg debug)">
         <param name="Kp" value="-2.0" />
         <param name="Ki" value="-2.0" />
         <param name="Kd" value="-0.1" />
@@ -16,5 +18,5 @@
     </node>
 
     <!-- Acutator Control -->
-    <node pkg="autonomous_driving" type="rovercontrol" name="maia" output="screen" ns="autonomous_driving"></node>
+    <node pkg="autonomous_driving" type="rovercontrol" name="maia" output="screen" ns="autonomous_driving" unless="$(arg debug)"></node>
 </launch>
