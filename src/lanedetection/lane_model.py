@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 from segment_model import SegmentModel
 from lane_detector import LaneDetector
 
