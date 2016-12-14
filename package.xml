@@ -60,6 +60,7 @@
   <run_depend>mavros_msgs</run_depend>
   <run_depend>pid</run_depend>
   <run_depend>image_proc</run_depend>
+  <run_depend>uvc_camera</run_depend>
   <run_depend>rqt_image_view</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
