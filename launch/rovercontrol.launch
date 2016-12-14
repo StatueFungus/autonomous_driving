@@ -16,12 +16,5 @@
     </node>
 
     <!-- Acutator Control -->
-    <node pkg="autonomous_driving"
-        type="rovercontrol"
-        name="maia"
-        respawn="false"
-        launch-prefix=""
-        output="screen"
-        required="true">
-    </node>
+    <node pkg="autonomous_driving" type="rovercontrol" name="maia" output="screen" ns="autonomous_driving"></node>
 </launch>
