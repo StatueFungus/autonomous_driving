@@ -1,10 +1,9 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import rospy
 import cv2
 import numpy as np
-from imagepreprocessing import ImagePreparator
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
