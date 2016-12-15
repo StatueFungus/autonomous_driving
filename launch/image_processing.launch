@@ -5,9 +5,16 @@
     <!-- Remove Image Distortion and rectification-->
     <node pkg="image_proc" type="image_proc" name="image_proc" ns="autonomous_driving" output="screen"></node>
     
+    <!-- Rezise Image -->
+    <node pkg="autonomous_driving" type="image_resizer_node.py" name="image_resizer_node" ns="autonomous_driving">
+        <remap from="image" to="image_rect_color"/>
+        <param name="height" type="int" value="480" />
+        <param name="width" type="int" value="640" />
+    </node>
+
     <!-- Inverse Perspective Mapping -->
     <node pkg="autonomous_driving" type="inverse_perspective_mapping_node.py" name="inverse_perspective_mapping_node" ns="autonomous_driving" output="screen">
-        <remap from="image" to="image_rect_color"/>
+        <remap from="image" to="image_preproc_resized"/>
         <param name="camera/height" type="int" value="20" />
         <param name="camera/aperture" type="int" value="140" />
     </node>
