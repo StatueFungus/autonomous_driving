@@ -1,0 +1,6 @@
+<launch>
+    <!-- Circle detection -->
+    <node pkg="autonomous_driving" type="object_detection_node.py" name="object_detection_node" ns="autonomous_driving" output="screen">
+        <remap from="image" to="image_raw"/>
+    </node>
+</launch>
