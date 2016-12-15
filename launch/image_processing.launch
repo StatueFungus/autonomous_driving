@@ -40,7 +40,7 @@
     </node>
 
     <!-- Lane Tracking (Should be moved to another launch file) -->
-    <node pkg="autonomous_driving" type="lane_tracking_node.py" name="lane_tracking_node" ns="autonomous_driving" output="screen">
+    <node pkg="autonomous_driving" type="lane_tracking_node.py" name="lane_tracking_node" ns="autonomous_driving">
         <remap from="image" to="image_preproc_canny"/>
     </node>
     
