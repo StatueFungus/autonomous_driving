@@ -6,7 +6,7 @@
     <include file="$(find mavros)/launch/px4.launch" unless="$(arg debug)"></include>
 
     <!-- PID Controller -->
-    <node pkg="pid" type="controller" name="controller" ns="autonomous_driving" output="screen" if="$(arg debug)">
+    <node pkg="pid" type="controller" name="controller" ns="autonomous_driving" output="screen">
         <param name="Kp" value="-2.0" />
         <param name="Ki" value="-2.0" />
         <param name="Kd" value="-0.1" />
