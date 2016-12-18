@@ -8,6 +8,9 @@
 	<include file="$(find autonomous_driving)/launch/image_processing.launch">
 		<arg name="debug" value="$(arg debug)" />
 	</include>
+	<include file="$(find autonomous_driving)/launch/lane_detection.launch">
+		<arg name="debug" value="$(arg debug)" />
+	</include>
 	<include file="$(find autonomous_driving)/launch/rovercontrol.launch">
 		<arg name="debug" value="$(arg debug)" />
 	</include>

@@ -1,0 +1,9 @@
+<launch>
+
+    <arg name="debug" default="false" />
+    
+    <!-- Lane Tracking -->
+    <node pkg="autonomous_driving" type="lane_tracking_node.py" name="lane_tracking_node" ns="autonomous_driving" output="log">
+        <remap from="image" to="image_preproc_canny"/>
+    </node>
+</launch>

@@ -45,11 +45,6 @@
         <param name="threshold_high" type="int" value="150" />
         <param name="aperture" type="int" value="3" />
     </node>
-
-    <!-- Lane Tracking (Should be moved to another launch file) -->
-    <node pkg="autonomous_driving" type="lane_tracking_node.py" name="lane_tracking_node" ns="autonomous_driving">
-        <remap from="image" to="image_preproc_canny"/>
-    </node>
     
     <!-- Image Viewer (Only for testing) -->
     <node pkg="rqt_image_view" type="rqt_image_view" name="rqt_image_view" if="$(arg debug)"></node>
