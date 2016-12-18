@@ -13,6 +13,7 @@ NODE_NAME = "inverse_perspective_mapping_node"
 SUB_TOPIC = "image"
 PUB_TOPIC = "image_preproc_ipm"
 DEFAULT_RESOLUTION = (640, 480)
+QUEUE_SIZE = 1
 
 
 class InversePerspectiveMappingNode:
@@ -25,7 +26,7 @@ class InversePerspectiveMappingNode:
         self.horizon_y = self.camera.get_horizon_y() + 25
 
         self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
-        self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=10)
+        self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
         self.image_resolution = DEFAULT_RESOLUTION
 
         rospy.spin()

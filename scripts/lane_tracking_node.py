@@ -13,6 +13,7 @@ SUB_TOPIC = "image"
 PUB_TOPIC = "debug_image"
 PUB_SETPOINT_TOPIC = "setpoint"
 PUB_STATE_TOPIC = "state"
+QUEUE_SIZE = 1
 
 
 class LaneTrackingNode:
@@ -20,9 +21,9 @@ class LaneTrackingNode:
     def __init__(self, sub_topic, pub_topic, pub_setpoint_topic, pub_state_topic):
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
-        self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=10)
-        self.setpoint_pub = rospy.Publisher(pub_setpoint_topic, Float64, queue_size=10)
-        self.state_pub = rospy.Publisher(pub_state_topic, Float64, queue_size=10)
+        self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
+        self.setpoint_pub = rospy.Publisher(pub_setpoint_topic, Float64, queue_size=QUEUE_SIZE)
+        self.state_pub = rospy.Publisher(pub_state_topic, Float64, queue_size=QUEUE_SIZE)
         self.lane_model = LaneModel(33, 1, 425)
         rospy.spin()
 

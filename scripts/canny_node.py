@@ -9,7 +9,7 @@ from cv_bridge import CvBridge, CvBridgeError
 NODE_NAME = "canny_node"
 SUB_TOPIC = "image"
 PUB_TOPIC = "image_preproc_canny"
-QUEUE_SIZE = 10
+QUEUE_SIZE = 1
 
 
 class CannyNode:
