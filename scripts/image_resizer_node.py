@@ -9,9 +9,9 @@ from cv_bridge import CvBridge, CvBridgeError
 NODE_NAME = "image_resizer_node"
 SUB_TOPIC = "image"
 PUB_TOPIC = "image_preproc_resized"
-QUEUE_SIZE = 1
-DEFAULT_HEIGHT = 640
-DEFAULT_WIDTH = 480
+QUEUE_SIZE = 10
+DEFAULT_HEIGHT = 480
+DEFAULT_WIDTH = 640
 
 class ImageReziserNode:
 
