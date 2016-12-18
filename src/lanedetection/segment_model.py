@@ -17,16 +17,15 @@ class SegmentModel:
         self.point_distance = point_distance
         self.vis = Visualizer()
 
-    def draw(self, image):
+    def draw(self, image, thickness=1):
         height, width, _ = image.shape
-        size = 1
-        self.vis.draw_line(image, (0, self.y_offset), (width, self.y_offset), (255, 0, 0), size)
+        self.vis.draw_line(image, (0, self.y_offset), (width, self.y_offset), (255, 0, 0), thickness)
         if self.left_point:
-            self.vis.draw_point(image, (self.left_point, self.y_offset), 3, (0, 255, 0), size)
+            self.vis.draw_point(image, (self.left_point, self.y_offset), 3, (0, 255, 0), thickness)
         if self.right_point:
-            self.vis.draw_point(image, (self.right_point, self.y_offset), 3, (0, 255, 0), size)
+            self.vis.draw_point(image, (self.right_point, self.y_offset), 3, (0, 255, 0), thickness)
         if self.point_center:
-            self.vis.draw_point(image, (self.point_center, self.y_offset), 3, (0, 0, 255), size)
+            self.vis.draw_point(image, (self.point_center, self.y_offset), 3, (0, 0, 255), thickness)
 
     def update_non_zero_points(self, image):
         self.nz_left_points, self.nz_right_points = self._calc_non_zero(image)
@@ -58,6 +57,8 @@ class SegmentModel:
         ret += "\ty_offset : " + str(self.y_offset) + "\n"
         ret += "\tnz_left_points : " + np.array_str(self.nz_left_points) + "\n"
         ret += "\tnz_right_points : " + np.array_str(self.nz_right_points) + "\n"
+        ret += "\tleft_point : " + str(self.left_point) + "\n"
+        ret += "\tright_point : " + str(self.right_point) + "\n"
         ret += "\tpoint_center : " + str(self.point_center) + "\n"
         ret += "}\n"
         return ret
