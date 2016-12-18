@@ -12,17 +12,19 @@ import numpy as np
 NODE_NAME = "inverse_perspective_mapping_node"
 SUB_TOPIC = "image"
 PUB_TOPIC = "image_preproc_ipm"
-DEFAULT_RESOLUTION = (640, 480)
+DEFAULT_RESOLUTION = (480, 640)
+DEFAULT_HORIZON_CORRECTION = 0.05  # 5 %
 QUEUE_SIZE = 1
 
 
 class InversePerspectiveMappingNode:
 
     def __init__(self, node_name, sub_topic, pub_topic):
-        self.camera = Camera(h=20, aperture=140)
         self.img_prep = ImagePreparator()
         self.bridge = CvBridge()
-        self.horizon_y = self.camera.get_horizon_y() + 25
+
+        self.camera = None
+        self.horizon_y = None
         self.image_resolution = DEFAULT_RESOLUTION
 
         self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
@@ -39,15 +41,16 @@ class InversePerspectiveMappingNode:
         except CvBridgeError as e:
             rospy.logerr(e)
 
-        self.image_resolution = len(cv_image[0]), len(cv_image)
+        if self._camera_needs_to_be_initialized(cv_image):
+            self._initialize_camera_parameters(cv_image)
 
         p1_w, p2_w, p3_w, p4_w = self._calculate_world_coordinates()
 
         rect = np.array([
             [0, self.horizon_y],
-            [self.image_resolution[0] - 1, self.horizon_y],
-            [self.image_resolution[0] - 1, self.image_resolution[1] - 1],
-            [0, self.image_resolution[1] - 1]
+            [self.image_resolution[1] - 1, self.horizon_y],
+            [self.image_resolution[1] - 1, self.image_resolution[0] - 1],
+            [0, self.image_resolution[0] - 1]
         ], dtype="float32")
 
         p1_new, p2_new, p3_new, p4_new = self._calculate_destination_points(
@@ -60,7 +63,7 @@ class InversePerspectiveMappingNode:
             [p4_new[0], p4_new[1]]
         ], dtype="float32")
 
-        warped = self.img_prep.warp_perspective(cv_image, rect, dst, (int(p2_new[0]), self.image_resolution[1] - 1))
+        warped = self.img_prep.warp_perspective(cv_image, rect, dst, (int(p2_new[0]), self.image_resolution[0] - 1))
 
         try:
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(warped, "bgr8"))
@@ -69,9 +72,9 @@ class InversePerspectiveMappingNode:
 
     def _calculate_world_coordinates(self):
         p1 = self.camera.image_to_world_coordinates(self.horizon_y, 0)
-        p2 = self.camera.image_to_world_coordinates(self.horizon_y, self.image_resolution[0] - 1)
-        p3 = self.camera.image_to_world_coordinates(self.image_resolution[1] - 1, self.image_resolution[0] - 1)
-        p4 = self.camera.image_to_world_coordinates(self.image_resolution[1] - 1, 0)
+        p2 = self.camera.image_to_world_coordinates(self.horizon_y, self.image_resolution[1] - 1)
+        p3 = self.camera.image_to_world_coordinates(self.image_resolution[0] - 1, self.image_resolution[1] - 1)
+        p4 = self.camera.image_to_world_coordinates(self.image_resolution[0] - 1, 0)
 
         return p1, p2, p3, p4
 
@@ -81,12 +84,24 @@ class InversePerspectiveMappingNode:
 
         min_x = min(p1_w[1], p2_w[1], p3_w[1], p4_w[1])
 
-        p1_new = ((p1_w[1] - min_x) * y_factor, self.image_resolution[1] - 1 - p1_w[0] * y_factor)
-        p2_new = ((p2_w[1] - min_x) * y_factor, self.image_resolution[1] - 1 - p2_w[0] * y_factor)
-        p3_new = ((p3_w[1] - min_x) * y_factor, self.image_resolution[1] - 1 - p3_w[0] * y_factor)
-        p4_new = ((p4_w[1] - min_x) * y_factor, self.image_resolution[1] - 1 - p4_w[0] * y_factor)
+        p1_new = ((p1_w[1] - min_x) * y_factor, self.image_resolution[0] - 1 - p1_w[0] * y_factor)
+        p2_new = ((p2_w[1] - min_x) * y_factor, self.image_resolution[0] - 1 - p2_w[0] * y_factor)
+        p3_new = ((p3_w[1] - min_x) * y_factor, self.image_resolution[0] - 1 - p3_w[0] * y_factor)
+        p4_new = ((p4_w[1] - min_x) * y_factor, self.image_resolution[0] - 1 - p4_w[0] * y_factor)
 
         return p1_new, p2_new, p3_new, p4_new
+
+    def _camera_needs_to_be_initialized(self, image):
+        height, width, _ = image.shape
+        return self.camera is None or self.horizon_y is None or cmp(self.image_resolution, (height, width)) is not 0
+
+    def _initialize_camera_parameters(self, image):
+        height, width, _ = image.shape
+        self.image_resolution = (height, width)
+        self.camera = Camera(h=20, aperture=140, m=width, n=height)
+        self.horizon_y = self.camera.get_horizon_y() + int(height * DEFAULT_HORIZON_CORRECTION)
+        rospy.loginfo("New Camera Parameters (%s)", self.image_resolution)
+        rospy.loginfo("New horizon (%s)", self.horizon_y)
 
 
 def main():
