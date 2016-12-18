@@ -8,6 +8,7 @@ from cv_bridge import CvBridge, CvBridgeError
 
 import rospy
 import numpy as np
+import cv2
 
 NODE_NAME = "inverse_perspective_mapping_node"
 SUB_TOPIC = "image"
@@ -25,7 +26,9 @@ class InversePerspectiveMappingNode:
 
         self.camera = None
         self.horizon_y = None
+        self.transformation_matrix = None
         self.image_resolution = DEFAULT_RESOLUTION
+        self.transformated_image_resolution = DEFAULT_RESOLUTION
 
         self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
 
@@ -43,27 +46,12 @@ class InversePerspectiveMappingNode:
 
         if self._camera_needs_to_be_initialized(cv_image):
             self._initialize_camera_parameters(cv_image)
+            self._calculate_transformation_matrix()
 
-        p1_w, p2_w, p3_w, p4_w = self._calculate_world_coordinates()
+        if self.transformation_matrix is None:
+            self._calculate_transformation_matrix()
 
-        rect = np.array([
-            [0, self.horizon_y],
-            [self.image_resolution[1] - 1, self.horizon_y],
-            [self.image_resolution[1] - 1, self.image_resolution[0] - 1],
-            [0, self.image_resolution[0] - 1]
-        ], dtype="float32")
-
-        p1_new, p2_new, p3_new, p4_new = self._calculate_destination_points(
-            p1_w, p2_w, p3_w, p4_w)
-
-        dst = np.array([
-            [p1_new[0], p1_new[1]],
-            [p2_new[0], p2_new[1]],
-            [p3_new[0], p3_new[1]],
-            [p4_new[0], p4_new[1]]
-        ], dtype="float32")
-
-        warped = self.img_prep.warp_perspective(cv_image, rect, dst, (int(p2_new[0]), self.image_resolution[0] - 1))
+        warped = self.img_prep.warp_perspective(cv_image, self.transformation_matrix, self.transformated_image_resolution)
 
         try:
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(warped, "bgr8"))
@@ -102,6 +90,29 @@ class InversePerspectiveMappingNode:
         self.horizon_y = self.camera.get_horizon_y() + int(height * DEFAULT_HORIZON_CORRECTION)
         rospy.loginfo("New Camera Parameters (%s)", self.image_resolution)
         rospy.loginfo("New horizon (%s)", self.horizon_y)
+
+    def _calculate_transformation_matrix(self):
+        p1_w, p2_w, p3_w, p4_w = self._calculate_world_coordinates()
+
+        rect = np.array([
+            [0, self.horizon_y],
+            [self.image_resolution[1] - 1, self.horizon_y],
+            [self.image_resolution[1] - 1, self.image_resolution[0] - 1],
+            [0, self.image_resolution[0] - 1]
+        ], dtype="float32")
+
+        p1_new, p2_new, p3_new, p4_new = self._calculate_destination_points(
+            p1_w, p2_w, p3_w, p4_w)
+
+        dst = np.array([
+            [p1_new[0], p1_new[1]],
+            [p2_new[0], p2_new[1]],
+            [p3_new[0], p3_new[1]],
+            [p4_new[0], p4_new[1]]
+        ], dtype="float32")
+
+        self.transformation_matrix = cv2.getPerspectiveTransform(rect, dst)
+        self.transformated_image_resolution = (int(p2_new[0]), self.image_resolution[0])  # width: most right point / height: height from orignal image
 
 
 def main():

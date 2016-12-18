@@ -52,9 +52,8 @@ class ImagePreparator:
     def edge_detection(self, image, threshold1, threshold2, aperture):
         return cv2.Canny(image, threshold1, threshold2, aperture)
 
-    def warp_perspective(self, image, rect, dst, resolution):
-        M = cv2.getPerspectiveTransform(rect, dst)
-        return cv2.warpPerspective(image, M, resolution)
+    def warp_perspective(self, image, transformation_matrix, resolution):
+        return cv2.warpPerspective(image, transformation_matrix, resolution)
 
     def filter_color(self, image, lower_color, upper_color):
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
