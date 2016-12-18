@@ -18,13 +18,18 @@ QUEUE_SIZE = 1
 
 class LaneTrackingNode:
 
-    def __init__(self, sub_topic, pub_topic, pub_setpoint_topic, pub_state_topic):
+    def __init__(self, node_name, sub_topic, pub_topic, pub_setpoint_topic, pub_state_topic):
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
+        self.lane_model = LaneModel(33, 1, 425)
+        
         self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
         self.setpoint_pub = rospy.Publisher(pub_setpoint_topic, Float64, queue_size=QUEUE_SIZE)
         self.state_pub = rospy.Publisher(pub_state_topic, Float64, queue_size=QUEUE_SIZE)
-        self.lane_model = LaneModel(33, 1, 425)
+
+        rospy.init_node(node_name, anonymous=True)
+
+        self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
+
         rospy.spin()
 
     def callback(self, data):
@@ -49,11 +54,8 @@ class LaneTrackingNode:
 
 
 def main():
-
-    # Initialisiere den Knoten
-    rospy.init_node(NODE_NAME, anonymous=True)
     try:
-        LaneTrackingNode(SUB_TOPIC, PUB_TOPIC, PUB_SETPOINT_TOPIC, PUB_STATE_TOPIC)
+        LaneTrackingNode(NODE_NAME, SUB_TOPIC, PUB_TOPIC, PUB_SETPOINT_TOPIC, PUB_STATE_TOPIC)
     except KeyboardInterrupt:
         rospy.loginfo("Shutting down node %s", NODE_NAME)
 

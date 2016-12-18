@@ -16,10 +16,15 @@ DEFAULT_WIDTH = 640
 
 class ImageReziserNode:
 
-    def __init__(self, sub_topic, pub_topic):
+    def __init__(self, node_name, sub_topic, pub_topic):
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
+        
         self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
+
+        rospy.init_node(node_name, anonymous=True)
+
+        self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
+
         rospy.spin()
 
     def callback(self, data):
@@ -39,10 +44,8 @@ class ImageReziserNode:
 
 
 def main():
-    # Initialisiere den Knoten
-    rospy.init_node(NODE_NAME, anonymous=True)
     try:
-        ImageReziserNode(SUB_TOPIC, PUB_TOPIC)
+        ImageReziserNode(NODE_NAME, SUB_TOPIC, PUB_TOPIC)
     except KeyboardInterrupt:
         rospy.loginfo("Shutting down node %s", NODE_NAME)
 

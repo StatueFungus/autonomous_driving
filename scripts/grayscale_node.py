@@ -15,11 +15,16 @@ QUEUE_SIZE = 1
 
 class GrayscaleNode:
 
-    def __init__(self, sub_topic, pub_topic):
+    def __init__(self, node_name, sub_topic, pub_topic):
         self.bridge = CvBridge()
         self.img_prep = ImagePreparator()
-        self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
+        
         self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
+
+        rospy.init_node(node_name, anonymous=True)
+
+        self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
+
         rospy.spin()
 
     def callback(self, data):
@@ -37,10 +42,8 @@ class GrayscaleNode:
 
 
 def main():
-    # Initialisiere den Knoten
-    rospy.init_node(NODE_NAME, anonymous=True)
     try:
-        GrayscaleNode(SUB_TOPIC, PUB_TOPIC)
+        GrayscaleNode(NODE_NAME, SUB_TOPIC, PUB_TOPIC)
     except KeyboardInterrupt:
         rospy.loginfo("Shutting down node %s", NODE_NAME)
 

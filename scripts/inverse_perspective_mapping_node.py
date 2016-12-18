@@ -18,16 +18,18 @@ QUEUE_SIZE = 1
 
 class InversePerspectiveMappingNode:
 
-    def __init__(self, sub_topic, pub_topic):
-
+    def __init__(self, node_name, sub_topic, pub_topic):
         self.camera = Camera(h=20, aperture=140)
         self.img_prep = ImagePreparator()
         self.bridge = CvBridge()
         self.horizon_y = self.camera.get_horizon_y() + 25
+        self.image_resolution = DEFAULT_RESOLUTION
+
+        self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
+
+        rospy.init_node(node_name, anonymous=True)
 
         self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
-        self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
-        self.image_resolution = DEFAULT_RESOLUTION
 
         rospy.spin()
 
@@ -88,10 +90,8 @@ class InversePerspectiveMappingNode:
 
 
 def main():
-
-    rospy.init_node(NODE_NAME, anonymous=True)
     try:
-        InversePerspectiveMappingNode(SUB_TOPIC, PUB_TOPIC)
+        InversePerspectiveMappingNode(NODE_NAME, SUB_TOPIC, PUB_TOPIC)
     except KeyboardInterrupt:
         rospy.loginfo("Shutting down node %s", NODE_NAME)
 
