@@ -48,8 +48,8 @@ class LaneDetector:
 
         if right_candidate and left_candidate:
             new_dist = int(right_candidate - left_candidate)
-            smallest_lane_width = 28 # ins launch file auslagern
-            biggest_lane_width = 50 # Kurve - ins launch file auslagern
+            smallest_lane_width = int(28/2) # ins launch file auslagern
+            biggest_lane_width = int(50/2) # Kurve - ins launch file auslagern
             if abs(new_dist - line_distance) <= 10 and smallest_lane_width <= new_dist and new_dist <= biggest_lane_width:
                 return left_candidate, right_candidate
         """

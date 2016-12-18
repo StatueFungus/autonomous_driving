@@ -20,7 +20,7 @@ class LaneTrackingNode:
 
     def __init__(self, node_name, sub_topic, pub_topic, pub_setpoint_topic, pub_state_topic):
         self.bridge = CvBridge()
-        self.lane_model = LaneModel(33, 1, 425)
+        self.lane_model = LaneModel(int(33/2), 1, int(425/2))
         
         self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
         self.setpoint_pub = rospy.Publisher(pub_setpoint_topic, Float64, queue_size=QUEUE_SIZE)
