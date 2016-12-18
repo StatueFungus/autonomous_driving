@@ -37,8 +37,6 @@ class LaneDetector:
                 print "%s: Liegt in der Naehe vom vorherigen Punkt" % p
                 right_points_score[p] += 3
 
-        print left_points_score, right_points_score
-
         if left_points != []:
             left_candidate = max(left_points_score, key=left_points_score.get)
         else:
@@ -48,6 +46,13 @@ class LaneDetector:
         else:
             right_candidate = right_point
 
+        if right_candidate and left_candidate:
+            new_dist = int(right_candidate - left_candidate)
+            smallest_lane_width = 28 # ins launch file auslagern
+            biggest_lane_width = 50 # Kurve - ins launch file auslagern
+            if abs(new_dist - line_distance) <= 10 and smallest_lane_width <= new_dist and new_dist <= biggest_lane_width:
+                return left_candidate, right_candidate
+        """
         if left_candidate and left_candidate in left_points_score and right_candidate and right_candidate in right_points_score and line_distance:
             if abs(abs(left_candidate - right_candidate) - line_distance) >= int(line_distance * 0.54):
                 if left_points_score[left_candidate] == right_points_score[right_candidate]:
@@ -56,6 +61,6 @@ class LaneDetector:
                 if left_points_score[left_candidate] > right_points_score[right_candidate]:
                     return left_candidate, left_candidate + line_distance
                 else:
-                    return right_candidate - line_distance, right_candidate
+                    return right_candidate - line_distance, right_candidate"""
 
-        return left_candidate, right_candidate
+        return left_point, right_point

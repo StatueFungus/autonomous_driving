@@ -33,9 +33,8 @@ class SegmentModel:
     def update_point_distance(self):
         if self.left_point and self.right_point:
             new_distance = self.right_point - self.left_point
-            if abs(new_distance - self.point_distance) < int(self.point_distance * 0.55):  # TODO: 0.55 in consts packen
-                self.point_distance = new_distance
-
+            self.point_distance = new_distance
+            
     def update_point_center(self):
         if self.left_point and self.right_point:
             self.point_center = int((self.left_point + self.right_point) / 2)
