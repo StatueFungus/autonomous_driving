@@ -48,7 +48,7 @@ class LaneDetector:
         else:
             right_candidate = right_point
 
-        if left_candidate is not None and right_candidate is not None and line_distance is not None:
+        if left_candidate and left_candidate in left_points_score and right_candidate and right_candidate in right_points_score and line_distance:
             if abs(abs(left_candidate - right_candidate) - line_distance) >= int(line_distance * 0.54):
                 if left_points_score[left_candidate] == right_points_score[right_candidate]:
                     return left_candidate, right_candidate
