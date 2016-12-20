@@ -3,7 +3,10 @@
     <arg name="debug" default="false" />
     
     <!-- Remove Image Distortion and rectification-->
-    <node pkg="image_proc" type="image_proc" name="image_proc" ns="autonomous_driving" output="screen"></node>
+    <node pkg="image_proc" type="image_proc" name="image_proc" ns="autonomous_driving" output="screen">
+            <!-- Queue size auf 2 im Gegensatz zu Standart 5 reduziert Prozessorlast um ca. 50%-->
+           	<param name="queue_size" type="int" value="2" />
+    </node>
     
     <!-- Rezise Image -->
     <node pkg="autonomous_driving" type="image_resizer_node.py" name="image_resizer_node" ns="autonomous_driving">
