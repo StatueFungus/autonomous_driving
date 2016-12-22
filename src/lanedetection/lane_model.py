@@ -11,10 +11,13 @@ class LaneModel:
 
     def __init__(self, lane_width, segment_count, y_offset_first_segment):
         self.lane_width = lane_width
+        # Tolerierte Abweichung zwischen zwei hintereinander gemessenen Straßenbreiten
+        self.lane_width_tolerance = round(self.lane_width * 0.25)
+
         self.segment_count = segment_count
         self.y_offset_first_segment = y_offset_first_segment
         self.segments = self._instantiate_segments()
-        self.lane_detector = LaneDetector()
+        self.lane_detector = LaneDetector(self.lane_width, self.lane_width_tolerance)
 
     def update_segments(self, image):
         for seg in self.segments:

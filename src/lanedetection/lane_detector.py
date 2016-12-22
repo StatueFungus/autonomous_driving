@@ -4,63 +4,43 @@
 
 class LaneDetector:
 
+    def __init__(self, lane_width, lane_width_tolerance):
+        self.lane_width = lane_width
+        self.lane_width_tolerance = lane_width_tolerance
+
     def find_lane_points(self, segment):
         left_points = segment.nz_left_points
         right_points = segment.nz_right_points
-        left_point = segment.left_point
-        right_point = segment.right_point
         line_distance = segment.point_distance
+        segment_center = segment.point_center
+        left_point = segment.left_point  # Könnte None sein
+        right_point = segment.right_point  # Könnte None sein
 
-        left_points_score = {}
-        for idx, p in enumerate(left_points):
-            left_points_score[p] = 0
-            if len(left_points) > idx + 1 and left_points[idx + 1] in range(p - 3, p):
-                print "%s: Moegliche linke Spur" % p
-                left_points_score[p] += 1
-            if any(rp in right_points for rp in range(p + line_distance - 2, p + line_distance + 3)):
-                print "%s: Hat rechte Gegenspur" % p
-                left_points_score[p] += 5
-            if left_point is not None and p in range(left_point - 4, left_point + 5):
-                print "%s: Liegt in der Naehe vom vorherigen Punkt" % p
-                left_points_score[p] += 3
-
-        right_points_score = {}
-        for idx, p in enumerate(right_points):
-            right_points_score[p] = 0
-            if len(right_points) > idx + 1 and right_points[idx + 1] in range(p, p + 5):
-                print "%s: Moegliche rechte Spur" % p
-                right_points_score[p] += 1
-            if any(lp in left_points for lp in range(p - line_distance - 3, p - line_distance + 2)):
-                print "%s: Hat linke Gegenspur" % p
-                right_points_score[p] += 5
-            if right_point is not None and p in range(right_point - 4, right_point + 5):
-                print "%s: Liegt in der Naehe vom vorherigen Punkt" % p
-                right_points_score[p] += 3
-
-        if left_points != []:
-            left_candidate = max(left_points_score, key=left_points_score.get)
+        if len(left_points) > 0:
+            left_candidate = left_points[0]
         else:
-            left_candidate = left_point
-        if right_points != []:
-            right_candidate = max(right_points_score, key=right_points_score.get)
+            left_candidate = segment_center + round(line_distance / 2)
+        if len(right_points) > 0:
+            right_candidate = right_points[0]
         else:
-            right_candidate = right_point
+            right_candidate = segment_center - round(line_distance / 2)
 
-        if right_candidate and left_candidate:
-            new_dist = int(right_candidate - left_candidate)
-            smallest_lane_width = int(28/2) # ins launch file auslagern
-            biggest_lane_width = int(50/2) # Kurve - ins launch file auslagern
-            if abs(new_dist - line_distance) <= 10 and smallest_lane_width <= new_dist and new_dist <= biggest_lane_width:
-                return left_candidate, right_candidate
-        """
-        if left_candidate and left_candidate in left_points_score and right_candidate and right_candidate in right_points_score and line_distance:
-            if abs(abs(left_candidate - right_candidate) - line_distance) >= int(line_distance * 0.54):
-                if left_points_score[left_candidate] == right_points_score[right_candidate]:
-                    return left_candidate, right_candidate
+        res_left_candidate = self._validate_candidate(left_candidate, segment_center, line_distance)
+        res_right_candidate = self._validate_candidate(right_candidate, segment_center, line_distance)
 
-                if left_points_score[left_candidate] > right_points_score[right_candidate]:
-                    return left_candidate, left_candidate + line_distance
-                else:
-                    return right_candidate - line_distance, right_candidate"""
+        if res_left_candidate and res_right_candidate:
+            return left_candidate, right_candidate
+        elif res_left_candidate and not res_right_candidate:
+            return left_candidate, left_candidate + line_distance
+        elif not res_left_candidate and right_candidate:
+            return right_candidate - line_distance, right_candidate
+        else:
+            return left_point, right_point
 
-        return left_point, right_point
+    def _validate_candidate(self, new_point, segment_center, line_distance):
+        """ Checkt, ob ein Kandidat in einem sinvollen Abstand zur vorherigen Segmentmitte liegt """
+        distance_seg_center = abs(new_point - segment_center)
+        diff_distance_seg_center = abs(distance_seg_center - round(line_distance / 2))
+        if diff_distance_seg_center <= self.lane_width_tolerance:
+            return True
+        return False   

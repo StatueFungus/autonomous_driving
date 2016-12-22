@@ -9,8 +9,8 @@ class SegmentModel:
 
     def __init__(self, y_offset, point_distance):
         self.y_offset = y_offset
-        self.nz_left_points = None
-        self.nz_right_points = None
+        self.nz_left_points = []
+        self.nz_right_points = []
         self.point_center = None
         self.left_point = None
         self.right_point = None
@@ -21,11 +21,11 @@ class SegmentModel:
         height, width, _ = image.shape
         self.vis.draw_line(image, (0, self.y_offset), (width, self.y_offset), (255, 0, 0), thickness)
         if self.left_point:
-            self.vis.draw_point(image, (self.left_point, self.y_offset), 3, (0, 255, 0), thickness)
+            self.vis.draw_point(image, (int(self.left_point), self.y_offset), 3, (0, 255, 0), thickness)
         if self.right_point:
-            self.vis.draw_point(image, (self.right_point, self.y_offset), 3, (0, 255, 0), thickness)
+            self.vis.draw_point(image, (int(self.right_point), self.y_offset), 3, (0, 255, 0), thickness)
         if self.point_center:
-            self.vis.draw_point(image, (self.point_center, self.y_offset), 3, (0, 0, 255), thickness)
+            self.vis.draw_point(image, (int(self.point_center), self.y_offset), 3, (0, 0, 255), thickness)
 
     def update_non_zero_points(self, image):
         self.nz_left_points, self.nz_right_points = self._calc_non_zero(image)
@@ -34,7 +34,8 @@ class SegmentModel:
         if self.left_point and self.right_point:
             new_distance = self.right_point - self.left_point
             self.point_distance = new_distance
-            
+            #print self.point_distance
+
     def update_point_center(self):
         if self.left_point and self.right_point:
             self.point_center = int((self.left_point + self.right_point) / 2)
@@ -45,6 +46,7 @@ class SegmentModel:
         else:
             _, width, _ = image.shape
             separator = int(width / 2)
+            self.point_center = separator
         arr = np.array(np.nonzero(image[self.y_offset])[0])
         nz_lp, nz_rp = [arr[arr < separator], arr[~(arr < separator)]]
         nz_lp, nz_rp = np.unique(nz_lp), np.unique(nz_rp)  # entferne doppelte Werte
