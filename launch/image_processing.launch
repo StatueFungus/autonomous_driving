@@ -12,7 +12,7 @@
     <node pkg="autonomous_driving" type="image_resizer_node.py" name="image_resizer_node" ns="autonomous_driving">
         <remap from="image" to="image_rect_color"/>
         <param name="height" type="int" value="240 " />
-        <param name="width" type="int" value="310" />
+        <param name="width" type="int" value="320" />
     </node>
 
     <!-- Inverse Perspective Mapping -->
