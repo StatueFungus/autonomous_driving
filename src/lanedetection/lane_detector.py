@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+WIDTH_TOLERANCE = 0.25  # Tolerierte Abweichung zwischen zwei hintereinander gemessenen Straßenbreiten
+
 
 class LaneDetector:
 
-    def __init__(self, lane_width, lane_width_tolerance):
+    def __init__(self, lane_width):
         self.lane_width = lane_width
-        self.lane_width_tolerance = lane_width_tolerance
+        self.lane_width_tolerance = round(self.lane_width * WIDTH_TOLERANCE)
 
     def find_lane_points(self, segment):
         left_points = segment.nz_left_points
@@ -19,20 +21,26 @@ class LaneDetector:
         left_points_score = {}
         for idx, p in enumerate(left_points):
             left_points_score[p] = 0
+            # ist der Punkt der nächste zur Segmentmitte?
             if idx == 0:
                 left_points_score[p] += 3
+            # besitzt der Punkt einen Nachbarpunkt?
             if len(left_points) > idx + 1 and left_points[idx + 1] in range(p-2, p):
                 left_points_score[p] += 1
+            # liegt der Punkt im Bereich seines Vorgängers?
             if left_point is not None and p in range(left_point - 4, left_point + 4):
                 left_points_score[p] += 2
 
         right_points_score = {}
         for idx, p in enumerate(right_points):
             right_points_score[p] = 0
+            # ist der Punkt der nächste zur Segmentmitte?
             if idx == 0:
                 right_points_score[p] += 3
+            # besitzt der Punkt einen Nachbarpunkt?
             if len(right_points) > idx + 1 and right_points[idx + 1] in range(p, p+2):
                 right_points_score[p] += 1
+            # liegt der Punkt im Bereich seines Vorgängers?
             if right_point is not None and p in range(right_point - 4, right_point + 4):
                 right_points_score[p] += 2
 
