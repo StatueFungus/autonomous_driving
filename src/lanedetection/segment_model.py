@@ -34,7 +34,6 @@ class SegmentModel:
         if self.left_point and self.right_point:
             new_distance = self.right_point - self.left_point
             self.point_distance = new_distance
-            #print self.point_distance
 
     def update_point_center(self):
         if self.left_point and self.right_point:
