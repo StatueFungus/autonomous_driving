@@ -20,6 +20,7 @@ class SegmentModel:
     def draw(self, image, thickness=1):
         height, width, _ = image.shape
         self.vis.draw_line(image, (0, self.y_offset), (width, self.y_offset), (255, 0, 0), thickness)
+        self.vis.draw_line(image, (int(width/2), 0), (int(width/2), height), (0, 0, 255), thickness)
         if self.left_point:
             self.vis.draw_point(image, (int(self.left_point), self.y_offset), 3, (0, 255, 0), thickness)
         if self.right_point:

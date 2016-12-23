@@ -47,7 +47,6 @@ class LaneTrackingNode:
 
         self.lane_model.update_segments(cv_image.copy())
         self.lane_model.draw_segments(cv_image)
-        cv2.line(cv_image, (len(cv_image[0]) / 2 - 1, 0), (len(cv_image[0]) / 2 - 1, len(cv_image)), (0, 0, 255), 1)
         state_point_x = self.lane_model.state_point_x()
 
         try:
