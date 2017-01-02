@@ -4,21 +4,20 @@ import cv2
 import numpy as np
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-from matplotlib import pyplot as plt
 
 NODE_NAME = "object_detection_node"
 SUB_TOPIC = "image"
 PUB_TOPIC = ""
 QUEUE_SIZE = 10
 
-waitValue = 2
+waitValue = 1
 
-cv2.namedWindow("bild")
-cv2.moveWindow("bild", 10,50)
-## cv2.namedWindow("mask")
-## cv2.moveWindow("mask",600,50)
-## cv2.namedWindow("equ")
-## cv2.moveWindow("equ",600,380)
+cv2.namedWindow("original")
+cv2.moveWindow("original", 10,50)
+cv2.namedWindow("canny")
+cv2.moveWindow("canny",600,50)
+#cv2.namedWindow("equ")
+#cv2.moveWindow("equ",600,380)
 
 
 class ObjectDetectionNode:
@@ -34,129 +33,104 @@ class ObjectDetectionNode:
         except CvBridgeError as e:
             rospy.logerr(e)
 			
-	def drawMatches(img1, kp1, img2, kp2, matches):
-    
-		## My own implementation of cv2.drawMatches as OpenCV 2.4.9
-		## does not have this function available but it's supported in
-		## OpenCV 3.0.0
-
-		## This function takes in two images with their associated 
-		## keypoints, as well as a list of DMatch data structure (matches) 
-		## that contains which keypoints matched in which images.
-
-		## An image will be produced where a montage is shown with
-		## the first image followed by the second image beside it.
-
-		## Keypoints are delineated with circles, while lines are connected
-		## between matching keypoints.
-
-		## img1,img2 - Grayscale images
-		## kp1,kp2 - Detected list of keypoints through any of the OpenCV keypoint 
-				  ## detection algorithms
-		## matches - A list of matches of corresponding keypoints through any
-				  ## OpenCV keypoint matching algorithm
-
-		# Create a new output image that concatenates the two images together
-		# (a.k.a) a montage
-		rows1 = img1.shape[0]
-		cols1 = img1.shape[1]
-		rows2 = img2.shape[0]
-		cols2 = img2.shape[1]
-
-		out = np.zeros((max([rows1,rows2]),cols1+cols2,3), dtype='uint8')
-
-		# Place the first image to the left
-		out[:rows1,:cols1] = np.dstack([img1, img1, img1])
-
-		# Place the next image to the right of it
-		out[:rows2,cols1:] = np.dstack([img2, img2, img2])
-
-		# For each pair of points we have between both images
-		# draw circles, then connect a line between them
-		for mat in matches:
-
-			# Get the matching keypoints for each of the images
-			img1_idx = mat.queryIdx
-			img2_idx = mat.trainIdx
-
-			# x - columns
-			# y - rows
-			(x1,y1) = kp1[img1_idx].pt
-			(x2,y2) = kp2[img2_idx].pt
-
-			# Draw a small circle at both co-ordinates
-			# radius 4
-			# colour blue
-			# thickness = 1
-			cv2.circle(out, (int(x1),int(y1)), 4, (255, 0, 0), 1)   
-			cv2.circle(out, (int(x2)+cols1,int(y2)), 4, (255, 0, 0), 1)
-
-			# Draw a line in between the two points
-			# thickness = 1
-			# colour blue
-			cv2.line(out, (int(x1),int(y1)), (int(x2)+cols1,int(y2)), (255, 0, 0), 1)
-
-
-		# Show the image
-		#cv2.imshow('Matched Features', out)
-		#cv2.waitKey(0)
-		#cv2.destroyWindow('Matched Features')
-
-		# Also return the image if you'd like a copy
-		return out
 			
-    ## def correct_gamma(image, gamma=1.0):
-        ## # build a lookup table mapping the pixel values [0, 255] to
-        ## # their adjusted gamma values
-        ## invGamma = 1.0 / gamma
-        ## table = np.array([((i / 255.0) ** invGamma) * 255
-                ## for i in np.arange(0, 256)]).astype("uint8")
+	def correct_gamma(image, gamma=1.0):
+		# build a lookup table mapping the pixel values [0, 255] to
+		# their adjusted gamma values
+		invGamma = 1.0 / gamma
+		table = np.array([((i / 255.0) ** invGamma) * 255
+			for i in np.arange(0, 256)]).astype("uint8")
  
-        ## # apply gamma correction using the lookup table
-        ## return cv2.LUT(image, table)
+		# apply gamma correction using the lookup table
+		return cv2.LUT(image, table)
+	
+	#copyFrame = cv_image.copy()
+	resizedImage = cv2.resize(cv_image.copy(),None,fx=0.5, fy=0.5, interpolation = cv2.INTER_CUBIC)
+	
+	#cv2.imshow("Image", cv_image)
+	#cv2.waitKey(3)
+	videoHeight, videoWidth , _ = resizedImage.shape
+	copyFrame = np.zeros(resizedImage.shape, np.uint8)
+	# NOTE: its img[y: y + h, x: x + w]
+	copyFrame[(videoHeight/2) : videoHeight, 0: videoWidth] = resizedImage[(videoHeight/2) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
 
-    
-    
-    
-	#img = cv2.imread('/home/walou/mpseRosWorkspace/src/autonomous_driving/scripts/ball.jpeg',0)
-	train = cv2.imread('/home/walou/mpseRosWorkspace/src/autonomous_driving/scripts/ball_train.jpeg',0)
-	#train2 = cv2.imread('/home/walou/mpseRosWorkspace/src/autonomous_driving/scripts/ball_train2.jpeg',0)
-	# Initiate ORB detector
-	img = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
-	orb = cv2.ORB(8000,1.2,8,31,0,3,0,31)
+	#copyFrame = correct_gamma(copyFrame,0.5)
+	#hsv = cv2.cvtColor(resizedImage, cv2.COLOR_BGR2HSV)
+	# range of yellow color in HSV
+	#lower_color = np.array([23,100,80]) # 15 geht mehr ins orange.. 20 ist noch gelblich
+	#upper_color = np.array([45,255,255])
 	
-	#cv2.imshow("ball", img)
-	# find the keypoints with ORB
-	kp1, des1 = orb.detectAndCompute(img,None)
-	kp2, des2 = orb.detectAndCompute(train,None)
-	#kp3, des3 = orb.detectAndCompute(train2, None)
+	# Threshold the HSV image to get only yellow colors
+	#hsvMask = cv2.inRange(hsv, lower_color, upper_color)
+	# close small holes
 	
-	bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+	#hsvMask = cv2.morphologyEx(hsvMask, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)))
+	#copyFrame = cv2.cvtColor(copyFrame, cv2.COLOR_BGR2GRAY)
+	#equ = cv2.equalizeHist(copyFrame)
 	
-	matches = bf.match(des1,des2)
-	#matches = matches + bf.match(des1,des2)
+	canny = cv2.Canny(cv2.medianBlur(copyFrame,5),75,36,3)
 	
+	#canny = cv2.blur(canny, (3,3))
+	#canny = cv2.morphologyEx(canny, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)))
+	# Bitwise-AND mask and original image
+	#mask = cv2.bitwise_and(canny, canny, mask= hsvMask)
 	
-	matches = sorted(matches, key= lambda x:x.distance)
+	#versuch alle linien zu uebermalen sodass nur noch der kreis uebrig bleibt,
+	#funktioniert nicht wie vorgestellt
+	#lines = cv2.HoughLinesP(canny,1,np.pi/180,45,5,2)
+	#for line in lines:
+	#	for x1,y1,x2,y2 in line:
+	#		cv2.line(resizedImage,(x1,y1),(x2,y2),(255,0,0),2)
+	#		cv2.line(canny,(x1,y1),(x2,y2),(0,0,0),2)
 	
-	res = drawMatches(img, kp1, train, kp2, matches)
+	#find circles in image
+	circles = cv2.HoughCircles(canny,cv2.cv.CV_HOUGH_GRADIENT,1, 15, param1=40,param2=25,minRadius=1) ##,maxRadius=100)
+	#res = cv2.cvtColor(res, cv2.COLOR_GRAY2BGR)
+	if circles is not None:
+		#waitValue = 0
+		rMax = 0
+		xMax = 0
+		yMax = 0
+		
+	# convert the (x, y) coordinates and radius of the circles to integers
+		#circles = np.round(circles[0, :]).astype("int")
+		circles = np.uint16(np.around(circles))
+
+	# loop over the (x, y) coordinates and radius of the circles
+		for (x, y, r) in circles[0,:]:
+	# draw the circle in the output image, then draw a rectangle
+	# corresponding to the center of the circle
+			posCalc = float(r)/float(y)
+			
+			if  posCalc < 0.064 and posCalc > 0.049:
+				#waitValue = 0
+			
+				cv2.circle(resizedImage, (x, y), r, (0, 255, 0), 4)
+				cv2.putText(resizedImage, str(r), (x,y), cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,0,0),2)
+				cv2.putText(resizedImage, str(x) + " " + str(y), (x,y+10), cv2.FONT_HERSHEY_SIMPLEX,0.4,(5,0,200),1)
+				#look for the biggest circle
+				if r > rMax:
+					rMax = r
+					xMax = x
+					yMax = y
+		#southPoint = int(yMax+(rMax))            
+		#cv2.circle(resizedImage, (xMax, yMax), rMax, (0, 0, 255), 2)
+		
+		#cv2.circle(videoFrame, (xMax, southPoint),1, (255,0,0),2)
+		#print("Distance: " + str(videoHeight-southPoint) + " in pixel")
+
+
 	
-	#plt.imshow(res),plt.show()
+	#cv2.putText(videoFrame, str(frameIdx), (100,40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
 	
-	cv2.imshow("bild", res)
+	cv2.imshow("original", resizedImage)
+	cv2.imshow("canny", canny)
+	#cv2.imshow("equ",canny)
+		   
+	#cv2.imshow("result", res)
 	
-	
-	# compute the descriptors with ORB
-	#kp, des = orb.compute(img, kp)
-	# draw only keypoints location,not size and orientation
-	#img2 = cv2.drawKeypoints(img, kp, None, color=(0,255,0), flags=0)
-	#plt.imshow(img2), plt.show()
-	
-	#cv2.imshow("original", img)
-	#cv2.imshow('bild',img)
-	#cv2.waitKey(0)
 	key = cv2.waitKey(waitValue)
-	
+        
 	## if key & 0xFF == ord('p'):
 		## if(waitValue == 0):
 			## waitValue = 10
