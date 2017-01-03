@@ -14,8 +14,9 @@ waitValue = 1
 
 cv2.namedWindow("original")
 cv2.moveWindow("original", 10,50)
-cv2.namedWindow("canny")
-cv2.moveWindow("canny",600,50)
+
+#cv2.namedWindow("canny")
+#cv2.moveWindow("canny",600,50)
 #cv2.namedWindow("equ")
 #cv2.moveWindow("equ",600,380)
 
@@ -47,129 +48,73 @@ class ObjectDetectionNode:
 	def cleanContours(contours):
 		for idx in xrange(len(contours)-1, -1, -1):
 			area = cv2.contourArea(contours[idx])
-			print(area)
+			#print(area)
+			#print("______________________________")
 			if area < 12: #or area > 1000:
 				del contours[idx]
 		return contours
 	
-	#copyFrame = cv_image.copy()
+	## resize the Image from 640*480 to 320*240
 	resizedImage = cv2.resize(cv_image.copy(),None,fx=0.5, fy=0.5, interpolation = cv2.INTER_CUBIC)
 	
-	#cv2.imshow("Image", cv_image)
-	#cv2.waitKey(3)
 	videoHeight, videoWidth , _ = resizedImage.shape
+	
+	## create a blank Image for the Mask
 	copyFrame = np.zeros(resizedImage.shape, np.uint8)
-	# NOTE: its img[y: y + h, x: x + w]
+	## img[y: y + h, x: x + w]
+	## crop the Image and store it to the blank image
 	copyFrame[(videoHeight/2) : videoHeight, 0: videoWidth] = resizedImage[(videoHeight/2) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
+	
+	## blur the image to remove noise
 	copyFrame = cv2.bilateralFilter(copyFrame, 5, 90,40)
 	copyFrame = cv2.GaussianBlur(copyFrame, (5,5),3)
 
-	#copyFrame = correct_gamma(copyFrame,0.5)
+	## change the color system from BGR to HSV
 	hsv = cv2.cvtColor(copyFrame, cv2.COLOR_BGR2HSV)
-	# range of yellow color in HSV
+	
+	## range of yellow color in HSV
 	lower_color = np.array([23,85,100]) # 15 geht mehr ins orange.. 20 ist noch gelblich
 	upper_color = np.array([45,255,255])
 	
-	# Threshold the HSV image to get only yellow colors
+	## Threshold the HSV image to get only yellow colors
 	hsvMask = cv2.inRange(hsv, lower_color, upper_color)
-	#hsvMask = cv2.erode(hsvMask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3)))
-	#hsvMask = cv2.dilate(hsvMask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5)))
-	# close small holes
-	
+	## close small holes an remove noise
 	hsvMask = cv2.morphologyEx(hsvMask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(2,2)))
-	#hsvMask2 = cv2.dilate(hsvMask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)))
 	
-	#cv2.circle(hsvMask2, (100,29),18,(255,255,255),10)
-	#copyFrame = cv2.cvtColor(copyFrame, cv2.COLOR_BGR2GRAY)
 	#equ = cv2.equalizeHist(copyFrame)
-	#cannyhsv2 = cv2.Canny(hsvMask2,255,255,3)
+	## threshold the gamma corrected (makes the image darker) image to get bright spots of the yellow object
+	hsvMask2 = cv2.inRange(cv2.cvtColor(correct_gamma(copyFrame,0.32), cv2.COLOR_BGR2HSV), lower_color, upper_color)
+	## threshold the gamma corrected (makes the image brighter) image to get dark spots of the yellow object
+	hsvMask3 = cv2.inRange(cv2.cvtColor(correct_gamma(copyFrame,1.95), cv2.COLOR_BGR2HSV), lower_color, upper_color)
 	
-	#canny = cv2.Canny(cv2.medianBlur(copyFrame,5),75,36,3)
-	
-	#canny = cv2.blur(canny, (3,3))
-	#canny = cv2.morphologyEx(canny, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)))
-	# Bitwise-AND mask and original image
-	#mask = cv2.bitwise_and(canny, canny, mask= hsvMask)
-	#plus = canny + hsvMask
-	
-	#plus = cv2.erode(plus, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(2,2)))
-	
-	#plus = cv2.dilate(plus, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5)))
-	#versuch alle linien zu uebermalen sodass nur noch der kreis uebrig bleibt,
-	#funktioniert nicht wie vorgestellt
-	#lines = cv2.HoughLinesP(canny,1,np.pi/180,45,5,2)
-	#for line in lines:
-	#	for x1,y1,x2,y2 in line:
-	#		cv2.line(resizedImage,(x1,y1),(x2,y2),(255,0,0),2)
-	#		cv2.line(canny,(x1,y1),(x2,y2),(0,0,0),2)
-	copyFrame = correct_gamma(copyFrame,0.35)
-	hsvMask2 = cv2.inRange(cv2.cvtColor(copyFrame, cv2.COLOR_BGR2HSV), lower_color, upper_color)
-	
-	#hsvMask2 = cv2.erode(hsvMask2, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3)))
-	#hsvMask2 = cv2.dilate(hsvMask2, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5)))
-	#grayFrame = cv2.cvtColor(copyFrame, cv2.COLOR_BGR2GRAY)
-	# BILITERAL FILTER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-	 
+	## add all hsv masks toghter
 	theMask = hsvMask + hsvMask2 
-	
-	#theMask = cv2.morphologyEx(theMask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5)))
-	
-	#find circles in image
-	#circles = cv2.HoughCircles(theMask,cv2.cv.CV_HOUGH_GRADIENT,1, 50, param1=75,param2=40, minRadius=1) ##,maxRadius=100)
-	#res = cv2.cvtColor(res, cv2.COLOR_GRAY2BGR)
-	
+	theMask = theMask + hsvMask3
+
+	## find contours in the thresholded mask image
 	contours, hierarchy = cv2.findContours(theMask.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+	## remove all small contours
 	contours = cleanContours(contours)
-	cv2.drawContours(resizedImage, contours, -1, (0,255,0), 3)
 	
-			
-		
+	## draw all contours
+	#cv2.drawContours(resizedImage, contours, -1, (0,255,0), 3)
 	
-	## if circles is not None:
-		## #waitValue = 0
-		## rMax = 0
-		## xMax = 0
-		## yMax = 0
-		
-	## # convert the (x, y) coordinates and radius of the circles to integers
-		## #circles = np.round(circles[0, :]).astype("int")
-		## circles = np.uint16(np.around(circles))
-	## # loop over the (x, y) coordinates and radius of the circles
-		## for (x, y, r) in circles[0,:]:
-	## # draw the circle in the output image, then draw a rectangle
-	## # corresponding to the center of the circle
-			## posCalc = float(r)/float(y)
+	## get the south point of the contour
+	if contours is not None:
+		for cnt in contours:
+			## get the moments and draw the contour
+			mom = cv2.moments(cnt)
+			#cv2.circle(resizedImage , (int(mom['m10']/mom['m00']) , int(mom['m01']/mom['m00'])),int(np.sqrt(cv2.contourArea(cnt)/np.pi)+0.5),(0,0,255),2)
+			cv2.circle(resizedImage, (int(mom['m10']/mom['m00']) , int(mom['m01']/mom['m00'] + (np.sqrt(cv2.contourArea(cnt)/np.pi)))), 1, (20,255,20),2)
 			
-			## if  posCalc < 0.064 and posCalc > 0.049:
-				## #waitValue = 0
-			
-				## cv2.circle(resizedImage, (x, y), r, (0, 255, 0), 4)
-				## cv2.putText(resizedImage, str(r), (x,y), cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,0,0),2)
-				## cv2.putText(resizedImage, str(x) + " " + str(y), (x,y+10), cv2.FONT_HERSHEY_SIMPLEX,0.4,(5,0,200),1)
-				## #look for the biggest circle
-				## if r > rMax:
-					## rMax = r
-					## xMax = x
-					## yMax = y
-		## #southPoint = int(yMax+(rMax))            
-		#cv2.circle(resizedImage, (xMax, yMax), rMax, (0, 0, 255), 2)
-		
-		#cv2.circle(videoFrame, (xMax, southPoint),1, (255,0,0),2)
-		#print("Distance: " + str(videoHeight-southPoint) + " in pixel")
-
-
+			## calculate the distance from the car to the object in pixels
+			print("Distance: " + str(videoHeight - int(mom['m01']/mom['m00'] + (np.sqrt(cv2.contourArea(cnt)/np.pi)))) + " pixel")
 	
-	#cv2.putText(videoFrame, str(frameIdx), (100,40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
+	
 	
 	cv2.imshow("original", resizedImage)
-	#cv2.imshow("gray", grayFrame)
-	#cv2.imshow("canny", copyFrame)
-	#cv2.imshow("hsv",hsvMask)
-	#cv2.imshow("hsv2",hsvMask2)
 	cv2.imshow("theMask", theMask)
-	#cv2.imshow("Plus",plus)
-		   
-	#cv2.imshow("result", res)
+
 	
 	key = cv2.waitKey(waitValue)
         
