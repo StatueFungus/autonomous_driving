@@ -9,46 +9,46 @@
 class Communication {
 public:
     Communication()
-        : communicationLock_(nullptr)
-        , inputAvailable_(nullptr)
-        , updated_(false)
+        : communicationLock(nullptr)
+        , inputAvailable(nullptr)
+        , updated(false)
     {}
 
     virtual ~Communication()
     {
     }
 
-    void setSignal(std::mutex *lock, std::condition_variable *inputAvailable)
+    void setSignal(std::mutex *lock, std::condition_variable *inInputAvailable)
     {
-        communicationLock_ = lock;
-        inputAvailable_ = inputAvailable;
+        communicationLock = lock;
+        inputAvailable = inInputAvailable;
     }
 
-    bool updated()
+    bool bUpdated()
     {
-        bool current = updated_;
-        updated_ = false;
+        bool current = updated;
+        updated = false;
         return current;
     }
 
 protected:
     void signal()
     {
-        if (!communicationLock_) return;
+        if (!communicationLock) return;
 
-        std::unique_lock<std::mutex> lock(*communicationLock_, std::defer_lock);
-        if(inputAvailable_ && lock.try_lock()) {
-            inputAvailable_->notify_one();
+        std::unique_lock<std::mutex> lock(*communicationLock, std::defer_lock);
+        if(inputAvailable && lock.try_lock()) {
+            inputAvailable->notify_one();
         }
-        updated_ = true;
+        updated = true;
     }
 
-    static std::mutex dataChangeLock_;
+    static std::mutex dataChangeLock;
 
 private:
-    std::mutex *communicationLock_;
-    std::condition_variable *inputAvailable_;
-    bool updated_;
+    std::mutex *communicationLock;
+    std::condition_variable *inputAvailable;
+    bool updated;
 
 };
 

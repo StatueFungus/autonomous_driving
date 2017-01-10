@@ -3,7 +3,7 @@
     <arg name="debug" default="false" />
 
     <!-- Pixhawk MAVROS -->
-    <include file="$(find mavros)/launch/px4.launch" unless="$(arg debug)"></include>
+    <!--<include file="$(find mavros)/launch/px4.launch" ns="autonomous_driving" unless="$(arg debug)"></include>-->
 
     <!-- PID Controller -->
     <node pkg="pid" type="controller" name="controller" ns="autonomous_driving" output="screen">
@@ -19,7 +19,9 @@
 
     <!-- Acutator Control -->
     <node pkg="autonomous_driving" type="rovercontrol" name="maia" output="screen" ns="autonomous_driving" unless="$(arg debug)">
-    	<remap from="rovercontrol/steering" to="rovercontrol/steering"/>
-	<remap from="rovercontrol/throttle" to="rovercontrol/throttle"/>
+    	<remap from="lanecontroller/steering" to="control_effort"/>
+	<remap from="lanecontroller/throttle" to="lanecontroller/throttle"/>
+	<remap from="objectcontroller/steering" to="objectcontroller/steering"/>
+	<remap from="objectcontroller/throttle" to="objectcontroller/throttle"/>
     </node>
 </launch>

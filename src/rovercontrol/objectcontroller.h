@@ -1,14 +1,13 @@
-#ifndef ROVERCONTROLLER_H
-#define ROVERCONTROLLER_H
+#ifndef OBJECTCONTROLLER_H
+#define OBJECTCONTROLLER_H
 
 #include "controller.h"
 #include <std_msgs/Float64.h>
 
-class RoverController : public Controller
+class ObjectController : public Controller
 {
 public:
-    RoverController(RosController* rosController);
-    ~RoverController();
+    ObjectController(RosController* rosController);
 
     void calculateYT();
 
@@ -20,4 +19,4 @@ private:
     void onIncomingThrottle(std_msgs::Float64::ConstPtr msg);
 };
 
-#endif // ROVERCONTROLLER_H
+#endif // OBJECTCONTROLLER_H

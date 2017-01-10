@@ -135,14 +135,21 @@ include_directories(
 # add_dependencies(autonomous_driving ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 set(rovercontrol_SRCS
+  src/rovercontrol/RosController.h
   src/rovercontrol/main.cpp
+  src/rovercontrol/communication.h
   src/rovercontrol/communication.cpp
   src/rovercontrol/flightcontroller.h
-  src/rovercontrol/phwrap.cpp
+  src/rovercontrol/pixhawk.cpp
+  src/rovercontrol/pixhawk.h
   src/rovercontrol/maia.cpp
+  src/rovercontrol/maia.h
   src/rovercontrol/controller.h
-  src/rovercontrol/rovercontroller.h
-  src/rovercontrol/rovercontroller.cpp
+  src/rovercontrol/controller.cpp
+  src/rovercontrol/lanecontroller.h
+  src/rovercontrol/lanecontroller.cpp
+  src/rovercontrol/objectcontroller.h
+  src/rovercontrol/objectcontroller.cpp
 )
 
 ## Declare a C++ executable

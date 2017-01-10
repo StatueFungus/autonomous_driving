@@ -54,7 +54,7 @@ public:
     void init(int argc, char** argv, std::string nodeName){
         ros::init(argc, argv, nodeName);
         nodeHandle = new ros::NodeHandle();
-        spinner = new AsyncSpinner(3);
+        spinner = new AsyncSpinner(2);
     }
 
     /**
