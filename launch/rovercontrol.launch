@@ -3,7 +3,7 @@
     <arg name="debug" default="false" />
 
     <!-- Pixhawk MAVROS -->
-    <!--<include file="$(find mavros)/launch/px4.launch" ns="autonomous_driving" unless="$(arg debug)"></include>-->
+    <include file="$(find mavros)/launch/px4.launch" ns="autonomous_driving" unless="$(arg debug)"></include>
 
     <!-- PID Controller -->
     <node pkg="pid" type="controller" name="controller" ns="autonomous_driving" output="screen">
