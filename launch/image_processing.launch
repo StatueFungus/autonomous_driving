@@ -3,46 +3,46 @@
     <arg name="debug" default="false" />
     
     <!-- Remove Image Distortion and rectification-->
-    <node pkg="image_proc" type="image_proc" name="image_proc" ns="autonomous_driving" output="screen">
+    <node pkg="image_proc" type="image_proc" name="image_proc" ns="autonomous_driving" output="log">
             <!-- Queue size auf 2 im Gegensatz zu Standart 5 reduziert Prozessorlast um ca. 50%-->
            	<param name="queue_size" type="int" value="2" />
     </node>
     
     <!-- Rezise Image -->
-    <node pkg="autonomous_driving" type="image_resizer_node.py" name="image_resizer_node" ns="autonomous_driving">
+    <node output="log" pkg="autonomous_driving" type="image_resizer_node.py" name="image_resizer_node" ns="autonomous_driving">
         <remap from="image" to="image_rect_color"/>
         <param name="height" type="int" value="240 " />
         <param name="width" type="int" value="320" />
     </node>
 
     <!-- Inverse Perspective Mapping -->
-    <node pkg="autonomous_driving" type="inverse_perspective_mapping_node.py" name="inverse_perspective_mapping_node" ns="autonomous_driving" output="screen">
+    <node output="log" pkg="autonomous_driving" type="inverse_perspective_mapping_node.py" name="inverse_perspective_mapping_node" ns="autonomous_driving">
         <remap from="image" to="image_preproc_resized"/>
         <param name="camera/height" type="int" value="20" />
         <param name="camera/aperture" type="int" value="140" />
     </node>
 
     <!-- Region of Interest -->
-    <node pkg="autonomous_driving" type="roi_node.py" name="roi_node" ns="autonomous_driving">
+    <node output="log" pkg="autonomous_driving" type="roi_node.py" name="roi_node" ns="autonomous_driving">
         <remap from="image" to="image_preproc_ipm"/>
         <param name="above" type="double" value="0.58" />
         <param name="below" type="double" value="0.1" />
     </node>
 
     <!-- Greyscale -->
-    <node pkg="autonomous_driving" type="grayscale_node.py" name="grayscale_node" ns="autonomous_driving">
+    <node output="log" pkg="autonomous_driving" type="grayscale_node.py" name="grayscale_node" ns="autonomous_driving">
         <remap from="image" to="image_preproc_roi"/>
     </node>
 
     <!-- Gaussian Blur -->
-    <node pkg="autonomous_driving" type="smoothing_node.py" name="smoothing_node" ns="autonomous_driving">
+    <node output="log" pkg="autonomous_driving" type="smoothing_node.py" name="smoothing_node" ns="autonomous_driving">
         <remap from="image" to="image_preproc_grayscale"/>
         <param name="deviation" type="int" value="3" />
         <param name="border" type="int" value="0" />
     </node>
 
     <!-- Canny Edge Detection -->
-    <node pkg="autonomous_driving" type="canny_node.py" name="canny_node" ns="autonomous_driving">
+    <node output="log" pkg="autonomous_driving" type="canny_node.py" name="canny_node" ns="autonomous_driving">
         <remap from="image" to="image_preproc_smooth"/>
         <param name="threshold_low" type="int" value="50" />
         <param name="threshold_high" type="int" value="150" />
