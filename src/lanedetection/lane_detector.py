@@ -5,12 +5,34 @@ WIDTH_TOLERANCE = 0.25  # Tolerierte Abweichung zwischen zwei hintereinander gem
 
 
 class LaneDetector:
+    '''
+        Klasse dient dazu die Straßenmarkierungen auf einer Segment Linie zu berechnen.
+    '''
 
     def __init__(self, lane_width):
+        '''
+            Konstruktor.
+
+            Parameter
+            ---------
+            lane_width : Integer
+                Straßenbreite
+        '''
         self.lane_width = lane_width
         self.lane_width_tolerance = round(self.lane_width * WIDTH_TOLERANCE)
 
     def find_lane_points(self, segment):
+        '''
+            Methode berechnet die Straßenmarkierung (linker und rechter Punkt) für eine Segment Linie.
+
+            Parameter
+            ---------
+            segment : Segment Linie
+
+            Rückgabe
+            ---------
+            Tupel : Straßenmarkierung >> (left_point, right_point)
+        '''
         point_distance = segment.point_distance
         segment_center = segment.point_center
 
@@ -61,7 +83,18 @@ class LaneDetector:
         return point_score
 
     def _validate_candidate(self, point, segment_center, line_distance):
-        """ Checkt, ob ein Kandidat in einem sinvollen Abstand zur vorherigen Segmentmitte liegt """
+        '''
+            Methode checkt, ob ein Kandidat in einem sinvollen Abstand zur vorherigen Segmentmitte liegt.
+
+            Parameter
+            ---------
+            point : Integer
+                Kandidat als rechter / linker Punkt.
+            segment_center : Integer
+                Segmentmitte des vorherigen Frames.
+            line_distance : Integer
+                Straßenbreite des vorherigen Frames.
+        '''
         distance_seg_center = abs(point - segment_center)
         diff_distance_seg_center = abs(distance_seg_center - round(line_distance / 2))
         if diff_distance_seg_center <= self.lane_width_tolerance:
