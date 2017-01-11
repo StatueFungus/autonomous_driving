@@ -6,33 +6,53 @@ import imutils
 
 
 class Visualizer:
-    ''' Klasse welche Methoden anbietet um Text und Linien auf ein Bild zu rendern und dieses anzuzeigen '''
+    '''
+        Klasse welche Hilfsmethoden anbietet um Text und Formen (Linien, Punkte)
+        mittels OpenCV auf ein Bild zu rendern und dieses anzuzeigen
+    '''
 
     def show(self, image, title='image'):
         '''
-            Zeigt das Bild (self.image) in einem Fenter an.
+            Zeigt das Bild in einem Fenter an.
 
             Parameter
             ---------
-            text : String
-                optionale Angabe eines Titels
+            image : Das anzuzeigende Bild
+            title (optional) : String
+                Name des Fensters
 
         '''
         cv2.imshow(title, image)
         cv2.waitKey(1)
 
     def draw_line(self, image, point1, point2, line_color, line_size):
+        '''
+            Zeichnet eine Linie aud ein Bild
+
+            Parameter
+            ---------
+            image : Das anzuzeigende Bild
+            point1 : Tupel
+                Startpunkt
+            point2 : Tupel
+                Endpunkt
+            line_color : Tupel
+                Farbe der Linie
+            line_size : Integer
+                Dicke der Linie
+
+        '''
         cv2.line(image, point1, point2, line_color, line_size)
 
     def draw_text(self, image, text, size, color, position):
         '''
-            Zeichnet einen Text auf das Bild (self.image).
+            Zeichnet einen Text auf das Bild.
 
             Parameter
             ---------
             text : String
                 Anzuzeigender Text
-            size : int
+            size : Integer
                 Groesse des Textes
             color : Tupel
                 Farbe des Textes >> (255,0,0)
@@ -46,4 +66,20 @@ class Visualizer:
                 cv2.putText(image, text, position, cv2.FONT_HERSHEY_COMPLEX, size, color, 2, cv2.LINE_AA)
 
     def draw_point(self, image, point, radius, color, thickness):
+        '''
+            Zeichnet einen Punkt auf das Bild.
+
+            Parameter
+            ---------
+            image : Das anzuzeigende Bild
+            point : Tupel
+                Position des Punktes auf dem Bild >> (x,y)
+            radius : Integer
+                Radius des Punktes
+            color : Tupel
+                Farbe des Punktes
+            thickness : Integer
+                Dicke des Punktes
+
+        '''
         cv2.circle(image, point, radius, color, thickness)
