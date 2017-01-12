@@ -16,8 +16,8 @@ DEFAULT_BREAKING_DISTANCE = 100
 
 waitValue = 1
 
-cv2.namedWindow("original")
-cv2.moveWindow("original", 10,50)
+#cv2.namedWindow("original")
+#cv2.moveWindow("original", 10,50)
 
 #cv2.namedWindow("canny")
 #cv2.moveWindow("canny",600,50)
@@ -60,9 +60,6 @@ class ObjectDetectionNode:
 				del contours[idx]
 		return contours
 	
-	## resize the Image from 640*480 to 320*240
-	resizedImage = cv2.resize(cv_image.copy(),None,fx=0.5, fy=0.5, interpolation = cv2.INTER_CUBIC)
-	
 	videoHeight, videoWidth , _ = resizedImage.shape
 	
 	## create a blank Image for the Mask
@@ -72,6 +69,7 @@ class ObjectDetectionNode:
 	copyFrame[(videoHeight/2) : videoHeight, 0: videoWidth] = resizedImage[(videoHeight/2) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
 	
 	## blur the image to remove noise
+	##Knoten
 	copyFrame = cv2.bilateralFilter(copyFrame, 5, 90,40)
 	copyFrame = cv2.GaussianBlur(copyFrame, (5,5),3)
 
@@ -117,13 +115,13 @@ class ObjectDetectionNode:
 			
 			## calculate the distance from the car to the object in pixels
 			distance = videoHeight - int(mom['m01']/mom['m00'] + (np.sqrt(cv2.contourArea(cnt)/np.pi)))
-			print("Distance: " + str(distance) + " pixel")
+			#print("Distance: " + str(distance) + " pixel")
 			if minDistance > distance:
 				minDistance = distance
 				centerX = int(mom['m10']/mom['m00'])
 	
-	cv2.imshow("original", resizedImage)
-	cv2.imshow("theMask", theMask)
+	#cv2.imshow("original", resizedImage)
+	#cv2.imshow("theMask", theMask)
 
 	# publish steering and throttle based on distance
 	if minDistance < self.breaking_distance/10.0:
