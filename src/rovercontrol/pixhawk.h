@@ -13,13 +13,14 @@
 
 #include "flightcontroller.h"
 
-class PHwrap : public Flightcontroller
+class Pixhawk : public Flightcontroller
 {
 public:
-    PHwrap(RosController* rosController);
-    ~PHwrap();
+    Pixhawk(RosController* rosController);
 
     void setOutput(double roll, double pitch, double yaw, double throttle, bool overwrite);
+    void setThrottle(double throttle, bool overwrite);
+    void setSteering(double steering, bool overwrite);
     void setOutputRate(int rateHz);
 
     virtual bool isReadyToDrive() const;
@@ -40,23 +41,23 @@ private:
     void onIncomingMavrosState(mavros_msgs::State::ConstPtr msg);
     void timerCallback(const ros::TimerEvent& e);
 
-    ros::ServiceClient armingClient_;
-    ros::ServiceClient modeClient_;
-    ros::Subscriber subMavState_;
+    ros::ServiceClient armingClient;
+    ros::ServiceClient modeClient;
+    ros::Subscriber subMavState;
     ros::Publisher actuator_controls_pub;
 
     mavros_msgs::ActuatorControl actuator_control_msg;
     mavros_msgs::CommandBool arm_cmd;
     mavros_msgs::SetMode offb_set_mode;
 
-    ros::Timer timer_;
-    ros::Time lastRequest_;
-    std::mutex actuatorSending_;
+    ros::Timer timer;
+    ros::Time lastRequest;
+    std::mutex actuatorSending;
 
-    PixhawkState currentState_;
-    bool isArmed_;
-    bool isInOffboard_;
-    bool isConnected_;
+    PixhawkState currentState;
+    bool isArmed;
+    bool isInOffboard;
+    bool isConnected;
 };
 
 #endif // PHWRAP_H

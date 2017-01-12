@@ -5,15 +5,25 @@
 
 class Controller : public Communication {
 public:
-    Controller() {}
+    Controller();
     virtual ~Controller() {}
 
-    virtual void calculateYT() = 0; // Berechne Yaw Throttle async. mit getActuatorControl
+    virtual void calculateYT() = 0; // Berechne Yaw Throttle.
 
-    float getSteering() const { return desiredSteering;}
-    float getThrottle() const { return desiredThrottle;}
+    float fetchSteering(bool setUpdatedFalse = true);
+    float fetchThrottle(bool setUpdatedFalse = true);
+
+    bool bUpdatedSteering() const;
+    bool bUpdatedThrottle() const;
 
 protected:
+    bool updatedSteering;
+    bool updatedThrottle;
+
+    void setSteering(float steering);
+    void setThrottle(float throttle);
+
+private:
     float desiredSteering;
     float desiredThrottle;
 };

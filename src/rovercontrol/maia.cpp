@@ -1,61 +1,101 @@
 #include "maia.h"
+#include "lanecontroller.h"
+#include "objectcontroller.h"
+#include "pixhawk.h"
 
 Maia::Maia(RosController* ros)
-    : flightcontroller_(nullptr),
-      controller_(nullptr)
+    : laneSteeringDisabled(false), laneThrottleDisabled(false), laneDisableDuration(ros::Duration(0.2))
 {
-    flightcontroller_ = new PHwrap(ros);
-    controller_ = new RoverController(ros);
+    pixhawk = new Pixhawk(ros);
+    lanecontroller = new LaneController(ros);
+    objectcontroller = new ObjectController(ros);
+
+    timerLaneDisableSteering = ros->getNodeHandle()->createTimer(laneDisableDuration,
+                                                                 &Maia::laneDisableSteeringCallback,this,true,false);
+    timerLaneDisableThrottle = ros->getNodeHandle()->createTimer(laneDisableDuration,
+                                                                 &Maia::laneDisableThrottleCallback,this,true,false);
 }
 
 Maia::~Maia()
 {
-    delete flightcontroller_;
-    delete controller_;
+    delete pixhawk;
+    delete lanecontroller;
+    delete objectcontroller;
+}
+
+void Maia::laneDisableSteeringCallback(const ros::TimerEvent& e)
+{
+    laneSteeringDisabled = false;
+}
+
+void Maia::laneDisableThrottleCallback(const ros::TimerEvent& e)
+{
+    laneThrottleDisabled = false;
 }
 
 void Maia::runMAIA()
 {
-    flightcontroller_->setSignal(&communicationLock_, &inputAvailable_);
-    controller_->setSignal(&communicationLock_, &inputAvailable_);
+    pixhawk->setSignal(&communicationLock, &inputAvailable);
+    lanecontroller->setSignal(&communicationLock, &inputAvailable);
+    objectcontroller->setSignal(&communicationLock, &inputAvailable);
 
-    std::unique_lock<std::mutex> lock(communicationLock_);
+    std::unique_lock<std::mutex> lock(communicationLock);
 
     while(ros::ok()) {
         // temporarily unlock mutex:
-        bool timeOut = std::cv_status::timeout == inputAvailable_.wait_for(lock, std::chrono::milliseconds(500));
+        bool timeOut = std::cv_status::timeout == inputAvailable.wait_for(lock, std::chrono::milliseconds(500));
 
         if (timeOut) {
             std::cout << "No ROS-Input: Emergency shutdown initiated!" << std::endl;
-            if(flightcontroller_->isEnabled())
+            if(pixhawk->isEnabled())
             {
-                flightcontroller_->disable();
-                flightcontroller_->update();
+                pixhawk->disable();
+                pixhawk->update();
             }
         }
 
-        bool updFlightcontroller = flightcontroller_->updated();
-        bool updController = controller_->updated();
+        bool updFlightcontroller = pixhawk->bUpdated();
+        bool updLaneController = lanecontroller->bUpdated();
+        bool updObjectController = objectcontroller->bUpdated();
 
-        if (updController) {
-            // Set Throttle and Steering directly
-            flightcontroller_->setOutput(controller_->getSteering(), 0.0, 0.0, controller_->getThrottle());
+        if (updLaneController) {
+            if(lanecontroller->bUpdatedSteering() && !laneSteeringDisabled) {
+                pixhawk->setSteering(lanecontroller->fetchSteering());
+            }
+            if(lanecontroller->bUpdatedThrottle() && !laneThrottleDisabled) {
+                pixhawk->setThrottle(lanecontroller->fetchThrottle());
+            }
+        }
+        // Object Controller
+        if (updObjectController) {
+            if(objectcontroller->bUpdatedSteering()) {
+                pixhawk->setSteering(objectcontroller->fetchSteering());
+                laneSteeringDisabled = true;
+                timerLaneDisableSteering.setPeriod(laneDisableDuration, true);
+                timerLaneDisableSteering.start();
+            }
+            if(objectcontroller->bUpdatedThrottle()) {
+                pixhawk->setThrottle(objectcontroller->fetchThrottle());
+                laneThrottleDisabled = true;
+                timerLaneDisableThrottle.setPeriod(laneDisableDuration, true);
+                timerLaneDisableThrottle.start();
+            }
+        }
 
-            // Enable Flightcontroller
-            if(!flightcontroller_->isEnabled())
-            {
-                flightcontroller_->enable();
-                flightcontroller_->update();
+        if(updLaneController || updObjectController) {
+            if(!pixhawk->isEnabled()) {
+                pixhawk->enable();
+                pixhawk->update();
             }
         }
 
         if (updFlightcontroller) {
-            flightcontroller_->update();
+            pixhawk->update();
         }
     }
 
     // Shutdown
     std::cout << "Shutdown: disable flightcontroller" << std::endl;
-    flightcontroller_->disable();
-    flightcontroller_->update();
+    pixhawk->disable();
+    pixhawk->update();
 }

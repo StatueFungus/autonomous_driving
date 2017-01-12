@@ -1,0 +1,15 @@
+<launch>
+
+    <arg name="debug" default="false" />
+    
+    <!-- Lane Tracking -->
+    <node pkg="autonomous_driving" type="lane_tracking_node.py" name="lane_tracking_node" ns="autonomous_driving" output="log">
+        <remap from="image" to="image_preproc_canny"/>
+        <!-- Strassenbreite in Pixel -->
+        <param name="lane_width" type="int" value="20 " />
+        <!-- Startpunkt in Pixel des ersten Segments -->
+        <param name="segment_start" type="int" value="210" />
+        <!-- Anzahl Segmente -->
+        <param name="segment_amount" type="int" value="1" />
+    </node>
+</launch>

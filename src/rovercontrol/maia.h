@@ -5,9 +5,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <iostream>
-
-#include "rovercontroller.h"
-#include "phwrap.h"
+#include "controller.h"
+#include "flightcontroller.h"
 
 class Maia
 {
@@ -18,12 +17,22 @@ public:
     void runMAIA();
 
 private:
-    std::mutex communicationLock_;
-    std::condition_variable inputAvailable_;
+    std::mutex communicationLock;
+    std::condition_variable inputAvailable;
 
     //Communication Objects
-    Flightcontroller *flightcontroller_;
-    Controller *controller_;
+    Flightcontroller *pixhawk;
+    Controller *lanecontroller;
+    Controller *objectcontroller;
+
+    ros::Duration laneDisableDuration;
+    ros::Timer timerLaneDisableSteering;
+    void laneDisableSteeringCallback(const ros::TimerEvent& e);
+    bool laneSteeringDisabled;
+
+    ros::Timer timerLaneDisableThrottle;
+    void laneDisableThrottleCallback(const ros::TimerEvent& e);
+    bool laneThrottleDisabled;
 };
 
 #endif // MAIA_H

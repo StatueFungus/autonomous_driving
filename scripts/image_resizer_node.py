@@ -2,22 +2,22 @@
 # -*- coding: utf-8 -*-
 
 import rospy
-
-from imagepreprocessing import ImagePreparator
+import cv2
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
-NODE_NAME = "grayscale_node"
+NODE_NAME = "image_resizer_node"
 SUB_TOPIC = "image"
-PUB_TOPIC = "image_preproc_grayscale"
+PUB_TOPIC = "image_preproc_resized"
 QUEUE_SIZE = 1
+DEFAULT_HEIGHT = 480
+DEFAULT_WIDTH = 640
 
 
-class GrayscaleNode:
+class ImageReziserNode:
 
     def __init__(self, node_name, sub_topic, pub_topic):
         self.bridge = CvBridge()
-        self.img_prep = ImagePreparator()
         
         self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
 
@@ -33,17 +33,19 @@ class GrayscaleNode:
         except CvBridgeError as e:
             rospy.logerr(e)
 
-        gray = self.img_prep.grayscale(cv_image)
+        height = rospy.get_param("/autonomous_driving/image_resizer_node/height", DEFAULT_HEIGHT)
+        width = rospy.get_param("/autonomous_driving/image_resizer_node/width", DEFAULT_WIDTH)
+        cv_image = cv2.resize(cv_image, (width, height), 0, 0, 0)
 
         try:
-            self.image_pub.publish(self.bridge.cv2_to_imgmsg(gray, "mono8"))
+            self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
         except CvBridgeError as e:
             rospy.logerr(e)
 
 
 def main():
     try:
-        GrayscaleNode(NODE_NAME, SUB_TOPIC, PUB_TOPIC)
+        ImageReziserNode(NODE_NAME, SUB_TOPIC, PUB_TOPIC)
     except KeyboardInterrupt:
         rospy.loginfo("Shutting down node %s", NODE_NAME)
 

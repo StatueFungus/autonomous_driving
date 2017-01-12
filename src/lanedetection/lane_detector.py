@@ -1,61 +1,102 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+WIDTH_TOLERANCE = 0.25  # Tolerierte Abweichung zwischen zwei hintereinander gemessenen Straßenbreiten
+
 
 class LaneDetector:
+    '''
+        Klasse dient dazu die Straßenmarkierungen auf einer Segment Linie zu berechnen.
+    '''
+
+    def __init__(self, lane_width):
+        '''
+            Konstruktor.
+
+            Parameter
+            ---------
+            lane_width : Integer
+                Straßenbreite
+        '''
+        self.lane_width = lane_width
+        self.lane_width_tolerance = round(self.lane_width * WIDTH_TOLERANCE)
 
     def find_lane_points(self, segment):
-        left_points = segment.nz_left_points
-        right_points = segment.nz_right_points
-        left_point = segment.left_point
-        right_point = segment.right_point
-        line_distance = segment.point_distance
+        '''
+            Methode berechnet die Straßenmarkierung (linker und rechter Punkt) für eine Segment Linie.
 
-        left_points_score = {}
-        for idx, p in enumerate(left_points):
-            left_points_score[p] = 0
-            if len(left_points) > idx + 1 and left_points[idx + 1] in range(p - 3, p):
-                print "%s: Moegliche linke Spur" % p
-                left_points_score[p] += 1
-            if any(rp in right_points for rp in range(p + line_distance - 2, p + line_distance + 3)):
-                print "%s: Hat rechte Gegenspur" % p
-                left_points_score[p] += 5
-            if left_point is not None and p in range(left_point - 4, left_point + 5):
-                print "%s: Liegt in der Naehe vom vorherigen Punkt" % p
-                left_points_score[p] += 3
+            Parameter
+            ---------
+            segment : Segment Linie
 
-        right_points_score = {}
-        for idx, p in enumerate(right_points):
-            right_points_score[p] = 0
-            if len(right_points) > idx + 1 and right_points[idx + 1] in range(p, p + 5):
-                print "%s: Moegliche rechte Spur" % p
-                right_points_score[p] += 1
-            if any(lp in left_points for lp in range(p - line_distance - 3, p - line_distance + 2)):
-                print "%s: Hat linke Gegenspur" % p
-                right_points_score[p] += 5
-            if right_point is not None and p in range(right_point - 4, right_point + 5):
-                print "%s: Liegt in der Naehe vom vorherigen Punkt" % p
-                right_points_score[p] += 3
+            Rückgabe
+            ---------
+            Tupel : Straßenmarkierung >> (left_point, right_point)
+        '''
+        point_distance = segment.point_distance
+        segment_center = segment.point_center
 
-        print left_points_score, right_points_score
+        # kalkuriere Scoring Table
+        left_points_score = self._calc_point_score(segment.nz_left_points, segment.left_point)
+        right_points_score = self._calc_point_score(segment.nz_right_points, segment.right_point)
 
-        if left_points != []:
-            left_candidate = max(left_points_score, key=left_points_score.get)
+        # definiere linken und rechten Kandidaten
+        left_candidate = self._define_candidate(left_points_score, segment_center, point_distance, left=True)
+        right_candidate = self._define_candidate(right_points_score, segment_center, point_distance, left=False)
+
+        # validiere linken und rechten Kandidaten
+        left_candidate_valid = self._validate_candidate(left_candidate, segment_center, point_distance)
+        right_candidate_valid = self._validate_candidate(right_candidate, segment_center, point_distance)
+
+        # definiere linken und rechten Punkt
+        if left_candidate_valid and right_candidate_valid:
+            return int(left_candidate), int(right_candidate)
+        elif left_candidate_valid and not right_candidate_valid:
+            return int(left_candidate), int(left_candidate + point_distance)
+        elif not left_candidate_valid and right_candidate_valid:
+            return int(right_candidate - point_distance), int(right_candidate)
         else:
-            left_candidate = left_point
-        if right_points != []:
-            right_candidate = max(right_points_score, key=right_points_score.get)
+            return segment.left_point, segment.right_point
+
+    def _define_candidate(self, point_score, segment_center, point_distance, left):
+        if point_score:
+            return max(point_score, key=point_score.get)
+        if left:
+            return segment_center + round(point_distance / 2)
         else:
-            right_candidate = right_point
+            return segment_center - round(point_distance / 2)
 
-        if left_candidate is not None and right_candidate is not None and line_distance is not None:
-            if abs(abs(left_candidate - right_candidate) - line_distance) >= int(line_distance * 0.54):
-                if left_points_score[left_candidate] == right_points_score[right_candidate]:
-                    return left_candidate, right_candidate
+    def _calc_point_score(self, points, old_point):
+        point_score = {}
 
-                if left_points_score[left_candidate] > right_points_score[right_candidate]:
-                    return left_candidate, left_candidate + line_distance
-                else:
-                    return right_candidate - line_distance, right_candidate
+        for idx, point in enumerate(points):
+            point_score[point] = 0
+            # ist der Punkt der nächste zur Segmentmitte?
+            if idx == 0:
+                point_score[point] += 3
+            # liegt der Punkt im Bereich seines Vorgängers?
+            if old_point is not None and point in range(old_point - 4, old_point + 4):
+                point_score[point] += 2
+            # besitzt der Punkt einen Nachbarpunkt?
+            if len(points) > idx + 1 and points[idx + 1] in range(point-2, point+2):
+                point_score[point] += 1
+        return point_score
 
-        return left_candidate, right_candidate
+    def _validate_candidate(self, point, segment_center, line_distance):
+        '''
+            Methode checkt, ob ein Kandidat in einem sinvollen Abstand zur vorherigen Segmentmitte liegt.
+
+            Parameter
+            ---------
+            point : Integer
+                Kandidat als rechter / linker Punkt.
+            segment_center : Integer
+                Segmentmitte des vorherigen Frames.
+            line_distance : Integer
+                Straßenbreite des vorherigen Frames.
+        '''
+        distance_seg_center = abs(point - segment_center)
+        diff_distance_seg_center = abs(distance_seg_center - round(line_distance / 2))
+        if diff_distance_seg_center <= self.lane_width_tolerance:
+            return True
+        return False

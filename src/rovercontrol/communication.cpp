@@ -1,3 +1,3 @@
 #include "communication.h"
 
-std::mutex Communication::dataChangeLock_;
+std::mutex Communication::dataChangeLock;
