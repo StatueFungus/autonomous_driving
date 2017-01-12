@@ -16,14 +16,21 @@ DEFAULT_BREAKING_DISTANCE = 100
 
 waitValue = 1
 
-#cv2.namedWindow("original")
-#cv2.moveWindow("original", 10,50)
+cv2.namedWindow("original")
+cv2.moveWindow("original", 650,350)
 
-#cv2.namedWindow("canny")
-#cv2.moveWindow("canny",600,50)
-#cv2.namedWindow("equ")
-#cv2.moveWindow("equ",600,380)
-
+cv2.namedWindow("theMask")
+cv2.moveWindow("theMask",390,350)
+cv2.namedWindow("hsvMask")
+cv2.moveWindow("hsvMask",390,50)
+cv2.namedWindow("hsvMask2")
+cv2.moveWindow("hsvMask2",720,50)
+cv2.namedWindow("hsvMask3")
+cv2.moveWindow("hsvMask3",1050,50)
+## cv2.namedWindow("gamma2")
+## cv2.moveWindow("gamma2",1,50)
+## cv2.namedWindow("gamma3")
+## cv2.moveWindow("gamma3",1,350)
 
 class ObjectDetectionNode:
     def __init__(self, sub_topic, pub_steering_topic, pub_throttle_topic):
@@ -60,6 +67,10 @@ class ObjectDetectionNode:
 				del contours[idx]
 		return contours
 	
+	
+	## resize the Image from 640*480 to 320*240
+	resizedImage = cv2.resize(cv_image.copy(),None,fx=0.5, fy=0.5, interpolation = cv2.INTER_CUBIC)
+	
 	videoHeight, videoWidth , _ = resizedImage.shape
 	
 	## create a blank Image for the Mask
@@ -77,26 +88,30 @@ class ObjectDetectionNode:
 	hsv = cv2.cvtColor(copyFrame, cv2.COLOR_BGR2HSV)
 	
 	## range of yellow color in HSV
-	lower_color = np.array([23,85,100]) # 15 geht mehr ins orange.. 20 ist noch gelblich
-	upper_color = np.array([45,255,255])
+	lower_color = np.array([38,175,105]) # 35#200 #100
+	upper_color = np.array([70,240,240])
 	
 	## Threshold the HSV image to get only yellow colors
 	hsvMask = cv2.inRange(hsv, lower_color, upper_color)
 	## close small holes an remove noise
-	hsvMask = cv2.morphologyEx(hsvMask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(2,2)))
+
 	
 	#equ = cv2.equalizeHist(copyFrame)
 	## threshold the gamma corrected (makes the image darker) image to get bright spots of the yellow object
-	hsvMask2 = cv2.inRange(cv2.cvtColor(correct_gamma(copyFrame,0.32), cv2.COLOR_BGR2HSV), lower_color, upper_color)
-	## threshold the gamma corrected (makes the image brighter) image to get dark spots of the yellow object
-	hsvMask3 = cv2.inRange(cv2.cvtColor(correct_gamma(copyFrame,1.95), cv2.COLOR_BGR2HSV), lower_color, upper_color)
+	gamma2 = correct_gamma(copyFrame,0.20)
+	hsvMask2 = cv2.inRange(cv2.cvtColor(gamma2, cv2.COLOR_BGR2HSV), lower_color, upper_color) # 0.32
+	## threshold the gamma corrected (makes the image less darker then the previous one) image to get darker spots of the yellow object
+	gamma3 = correct_gamma(copyFrame,0.48)#35#50
+	hsvMask3 = cv2.inRange(cv2.cvtColor(gamma3, cv2.COLOR_BGR2HSV), lower_color, upper_color)
 	
 	## add all hsv masks toghter
 	theMask = hsvMask + hsvMask2 
 	theMask = theMask + hsvMask3
-
+	
 	## find contours in the thresholded mask image
 	contours, hierarchy = cv2.findContours(theMask.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+	
+	#cv2.drawContours(resizedImage, contours, -1, (0,0,255),1)
 	## remove all small contours
 	contours = cleanContours(contours)
 	
@@ -111,7 +126,7 @@ class ObjectDetectionNode:
 			## get the moments and draw the contour
 			mom = cv2.moments(cnt)
 			#cv2.circle(resizedImage , (int(mom['m10']/mom['m00']) , int(mom['m01']/mom['m00'])),int(np.sqrt(cv2.contourArea(cnt)/np.pi)+0.5),(0,0,255),2)
-			cv2.circle(resizedImage, (int(mom['m10']/mom['m00']) , int(mom['m01']/mom['m00'] + (np.sqrt(cv2.contourArea(cnt)/np.pi)))), 1, (20,255,20),2)
+			cv2.circle(resizedImage, (int(mom['m10']/mom['m00']) , int(mom['m01']/mom['m00'] + (np.sqrt(cv2.contourArea(cnt)/np.pi)))), 1, (20,0,255),2)
 			
 			## calculate the distance from the car to the object in pixels
 			distance = videoHeight - int(mom['m01']/mom['m00'] + (np.sqrt(cv2.contourArea(cnt)/np.pi)))
@@ -120,8 +135,13 @@ class ObjectDetectionNode:
 				minDistance = distance
 				centerX = int(mom['m10']/mom['m00'])
 	
-	#cv2.imshow("original", resizedImage)
-	#cv2.imshow("theMask", theMask)
+	cv2.imshow("original", resizedImage)
+	cv2.imshow("theMask", theMask)
+	cv2.imshow("hsvMask", hsvMask)
+	cv2.imshow("hsvMask2", hsvMask2)
+	cv2.imshow("hsvMask3", hsvMask3)
+	#cv2.imshow("gamma3",gamma3)
+	#cv2.imshow("gamma2",gamma2)
 
 	# publish steering and throttle based on distance
 	if minDistance < self.breaking_distance/10.0:
