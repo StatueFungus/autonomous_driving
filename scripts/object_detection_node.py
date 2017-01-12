@@ -3,12 +3,16 @@ import rospy
 import cv2
 import numpy as np
 from sensor_msgs.msg import Image
+from std_msgs.msg import Float64
 from cv_bridge import CvBridge, CvBridgeError
 
 NODE_NAME = "object_detection_node"
 SUB_TOPIC = "image"
-PUB_TOPIC = ""
+PUB_STEERING_TOPIC = "obj_steering"
+PUB_THROTTLE_TOPIC = "obj_throttle"
 QUEUE_SIZE = 10
+# valid default value only for resolution of 320x240
+DEFAULT_BREAKING_DISTANCE = 100
 
 waitValue = 1
 
@@ -22,10 +26,12 @@ cv2.moveWindow("original", 10,50)
 
 
 class ObjectDetectionNode:
-    def __init__(self, sub_topic, pub_topic):
+    def __init__(self, sub_topic, pub_steering_topic, pub_throttle_topic):
         self.bridge = CvBridge()
-
+        self.breaking_distance = rospy.get_param("/object_detection_node/breaking_distance", DEFAULT_BREAKING_DISTANCE)
         self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
+        self.steering_pub = rospy.Publisher(pub_steering_topic, Float64, queue_size=1)
+        self.throttle_pub = rospy.Publisher(pub_throttle_topic, Float64, queue_size=1)
         rospy.spin()
 
     def callback(self, data):
@@ -98,8 +104,10 @@ class ObjectDetectionNode:
 	
 	## draw all contours
 	#cv2.drawContours(resizedImage, contours, -1, (0,255,0), 3)
-	
+
 	## get the south point of the contour
+	minDistance = 99999;
+	centerX = 0
 	if contours is not None:
 		for cnt in contours:
 			## get the moments and draw the contour
@@ -108,14 +116,31 @@ class ObjectDetectionNode:
 			cv2.circle(resizedImage, (int(mom['m10']/mom['m00']) , int(mom['m01']/mom['m00'] + (np.sqrt(cv2.contourArea(cnt)/np.pi)))), 1, (20,255,20),2)
 			
 			## calculate the distance from the car to the object in pixels
-			print("Distance: " + str(videoHeight - int(mom['m01']/mom['m00'] + (np.sqrt(cv2.contourArea(cnt)/np.pi)))) + " pixel")
-	
-	
+			distance = videoHeight - int(mom['m01']/mom['m00'] + (np.sqrt(cv2.contourArea(cnt)/np.pi)))
+			print("Distance: " + str(distance) + " pixel")
+			if minDistance > distance:
+				minDistance = distance
+				centerX = int(mom['m10']/mom['m00'])
 	
 	cv2.imshow("original", resizedImage)
 	cv2.imshow("theMask", theMask)
 
+	# publish steering and throttle based on distance
+	if minDistance < self.breaking_distance/10.0:
+		# hard stop
+		self.throttle_pub.publish(0.0)
+		self.steering_pub.publish(0.0)
+	elif minDistance < self.breaking_distance:
+		# maximum throttle is 0.5
+		self.throttle_pub.publish(float(minDistance/(self.breaking_distance*2.0)))
+		halfVideoWidth = videoWidth * 0.5
+		deviation = (centerX - halfVideoWidth) / halfVideoWidth
+		if deviation > 0.0:
+			self.steering_pub.publish(1.0 - deviation)
+		else:
+			self.steering_pub.publish(-(1.0 + deviation))
 	
+
 	key = cv2.waitKey(waitValue)
         
 	## if key & 0xFF == ord('p'):
@@ -131,7 +156,7 @@ def main():
     # Initialisiere den Knoten
     rospy.init_node(NODE_NAME, anonymous=True)
     try:
-        ObjectDetectionNode(SUB_TOPIC, PUB_TOPIC)
+        ObjectDetectionNode(SUB_TOPIC, PUB_STEERING_TOPIC, PUB_THROTTLE_TOPIC)
     except KeyboardInterrupt:
         rospy.loginfo("Shutting down node %s", NODE_NAME)
 
