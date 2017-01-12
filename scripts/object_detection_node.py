@@ -133,7 +133,7 @@ class ObjectDetectionNode:
 			
 			## calculate the distance from the car to the object in pixels
 			distance = videoHeight - int(mom['m01']/mom['m00'] + (np.sqrt(cv2.contourArea(cnt)/np.pi)))
-			print("Distance: " + str(distance) + " pixel")
+			#print("Distance: " + str(distance) + " pixel")
 			if minDistance > distance:
 				minDistance = distance
 				centerX = int(mom['m10']/mom['m00'])
