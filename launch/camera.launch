@@ -4,8 +4,8 @@
 
     <!-- Inverse Perspective Mapping -->
     <node pkg="uvc_camera" type="uvc_camera_node" name="uvc_camera" output="screen" required="true" ns="autonomous_driving" unless="$(arg debug)">
-        <param name="width" type="int" value="640" />
-        <param name="height" type="int" value="480" />
+        <param name="width" type="int" value="320" />
+        <param name="height" type="int" value="240" />
         <param name="fps" type="int" value="15" />
         <param name="frame" type="string" value="wide_stereo" />
         <param name="format" type="string" value="yuyv" />
