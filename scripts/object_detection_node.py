@@ -40,6 +40,7 @@ class ObjectDetectionNode:
         self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
         self.steering_pub = rospy.Publisher(pub_steering_topic, Float64, queue_size=1)
         self.throttle_pub = rospy.Publisher(pub_throttle_topic, Float64, queue_size=1)
+        self.roadmask = None
         rospy.spin()
 
     def callback(self, data):
@@ -67,8 +68,7 @@ class ObjectDetectionNode:
 			if area < 12: #or area > 1000:
 				del contours[idx]
 		return contours
-	
-	
+
 	## resize the Image from 640*480 to 320*240
 	#resizedImage = cv2.resize(cv_image.copy(),None,fx=0.5, fy=0.5, interpolation = cv2.INTER_CUBIC)
 	
@@ -83,15 +83,17 @@ class ObjectDetectionNode:
 	#copyFrame[(videoHeight/2) : videoHeight, 0: videoWidth] = resizedImage[(videoHeight/2) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
 	copyFrame[(videoHeight/1.5) : videoHeight, 0: videoWidth] = cv_image[(videoHeight/1.5) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
 
-	## Region of Interest by creating mask
-	roadmask = np.ones(copyFrame.shape, dtype=np.uint8) * 255
-	roi_corners = np.array([[(0,0), (videoWidth*0.625,0), (videoWidth*0.22,videoHeight), (0,videoHeight)]], dtype=np.int32)
-	cv2.fillPoly(roadmask, roi_corners, (0,0,0))
-	roi_corners = np.array([[(videoWidth,0), (videoWidth*0.375,0), (videoWidth*0.78,videoHeight), (videoWidth,videoHeight)]], dtype=np.int32)
-	cv2.fillPoly(roadmask, roi_corners, (0,0,0))
-	## apply the mask
-	copyFrame = cv2.bitwise_and(copyFrame, roadmask)
-	#cv2.imshow("regionOfInterest", copyFrame)
+	if self.roadmask is None:
+		## Region of Interest by creating mask
+		self.roadmask = np.ones(cv_image.shape, dtype=np.uint8) * 255
+		roi_corners = np.array([[(0,0), (videoWidth*0.625,0), (videoWidth*0.22,videoHeight), (0,videoHeight)]], dtype=np.int32)
+		cv2.fillPoly(self.roadmask, roi_corners, (0,0,0))
+		roi_corners = np.array([[(videoWidth,0), (videoWidth*0.375,0), (videoWidth*0.78,videoHeight), (videoWidth,videoHeight)]], dtype=np.int32)
+		cv2.fillPoly(self.roadmask, roi_corners, (0,0,0))
+	else:
+		## apply the mask
+		copyFrame = cv2.bitwise_and(copyFrame, self.roadmask)
+		#cv2.imshow("regionOfInterest", copyFrame)
 
 	## blur the image to remove noise
 	##Knoten
@@ -174,6 +176,8 @@ class ObjectDetectionNode:
 		#	self.steering_pub.publish(1.0 - deviation)
 		#else:
 		#	self.steering_pub.publish(-(1.0 + deviation))
+	else:
+		self.throttle_pub.publish(0.425)
 	
 
 	key = cv2.waitKey(waitValue)
