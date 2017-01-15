@@ -5,6 +5,7 @@
     <!-- Circle detection -->
     <node pkg="autonomous_driving" type="object_detection_node.py" name="object_detection_node" ns="autonomous_driving" output="screen">
         <remap from="image" to="image_raw"/>
-	<param name="breaking_distance" type="int" value="100" />
+	<param name="base_throttle" type="double" value="0.425" />
+	<param name="b_calc_steering" type="bool" value="false" />
     </node>
 </launch>

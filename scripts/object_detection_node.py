@@ -11,9 +11,10 @@ SUB_TOPIC = "image"
 PUB_STEERING_TOPIC = "obj_steering"
 PUB_THROTTLE_TOPIC = "obj_throttle"
 QUEUE_SIZE = 10
-# valid default value only for resolution of 320x240
-DEFAULT_BREAKING_DISTANCE = 100
+
+DEFAULT_BASE_THROTTLE = 0.425
 DEFAULT_HEIGHT_SCALE_FACTOR = 0.625
+DEFAULT_B_CALC_STEERING = False
 
 waitValue = 1
 
@@ -37,7 +38,8 @@ waitValue = 1
 class ObjectDetectionNode:
     def __init__(self, sub_topic, pub_steering_topic, pub_throttle_topic):
         self.bridge = CvBridge()
-        self.breaking_distance = rospy.get_param("/object_detection_node/breaking_distance", DEFAULT_BREAKING_DISTANCE)
+        self.base_throttle = rospy.get_param("/autonomous_driving/object_detection_node/base_throttle", DEFAULT_BASE_THROTTLE)
+        self.b_calc_steering = rospy.get_param("/autonomous_driving/object_detection_node/b_calc_steering", DEFAULT_B_CALC_STEERING)
         self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
         self.steering_pub = rospy.Publisher(pub_steering_topic, Float64, queue_size=1)
         self.throttle_pub = rospy.Publisher(pub_throttle_topic, Float64, queue_size=1)
@@ -152,7 +154,7 @@ class ObjectDetectionNode:
 			
 			## calculate the distance from the car to the object in pixels
 			distance = videoHeight - y
-			print("Distance: " + str(distance) + " pixel")
+			#print("Distance: " + str(distance) + " pixel")
 			if minDistance > distance:
 				minDistance = distance
 				centerX = int(mom['m10']/mom['m00'])
@@ -166,23 +168,31 @@ class ObjectDetectionNode:
 	#cv2.imshow("gamma3",gamma3)
 	#cv2.imshow("gamma2",gamma2)
 
-	# publish (steering) and throttle based on distance
-	#if minDistance < self.breaking_distance/10.0:
-	if minDistance < self.breaking_distance:
+	#if minDistance < videoHeight/10.0:
 		# hard stop
-		self.throttle_pub.publish(-1.0)
-		#self.steering_pub.publish(0.0)
-	#elif minDistance < self.breaking_distance:
+		#self.throttle_pub.publish(-1.0)
+	#elif minDistance < videoHeight:
 		# maximum throttle is 0.5
-		#self.throttle_pub.publish(float(minDistance/(self.breaking_distance*2.0)))
-		#halfVideoWidth = videoWidth * 0.5
-		#deviation = -((centerX - halfVideoWidth) / halfVideoWidth)
-		#if deviation > 0.0:
-		#	self.steering_pub.publish(1.0 - deviation)
-		#else:
-		#	self.steering_pub.publish(-(1.0 + deviation))
+		#self.throttle_pub.publish(float(minDistance/(videoHeight*2.0)))
+
+	## publish steering and throttle based on distance
+	if minDistance < videoHeight:
+		if self.b_calc_steering is True:
+			## Calculate Steering
+			deviation = (1.0 - ((centerX) / float(videoWidth))) + 0.5
+			if deviation > 1.0:
+				deviation = 1.0
+			## Always steer to left
+			self.steering_pub.publish(-deviation)
+			## Get Throttle
+			self.base_throttle = rospy.get_param("/autonomous_driving/object_detection_node/base_throttle")
+			self.throttle_pub.publish(self.base_throttle)
+		else:
+			## hard stop
+			self.throttle_pub.publish(-1.0)
 	else:
-		self.throttle_pub.publish(0.425)
+		self.base_throttle = rospy.get_param("/autonomous_driving/object_detection_node/base_throttle")
+		self.throttle_pub.publish(self.base_throttle)
 	
 	## end = rospy.get_rostime()
 	## rospy.loginfo("Milliseconds    %s", str((end - now)/1000000.0))
