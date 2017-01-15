@@ -18,6 +18,7 @@ waitValue = 1
 
 ## cv2.namedWindow("original")
 ## cv2.moveWindow("original", 650,350)
+## cv2.namedWindow("regionOfInterest")
 
 ## cv2.namedWindow("theMask")
 ## cv2.moveWindow("theMask",390,350)
@@ -80,7 +81,18 @@ class ObjectDetectionNode:
 	## img[y: y + h, x: x + w]
 	## crop the Image and store it to the blank image
 	#copyFrame[(videoHeight/2) : videoHeight, 0: videoWidth] = resizedImage[(videoHeight/2) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
-	copyFrame[(videoHeight/2) : videoHeight, 0: videoWidth] = cv_image[(videoHeight/2) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
+	copyFrame[(videoHeight/1.5) : videoHeight, 0: videoWidth] = cv_image[(videoHeight/1.5) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
+
+	## Region of Interest by creating mask
+	roadmask = np.ones(copyFrame.shape, dtype=np.uint8) * 255
+	roi_corners = np.array([[(0,0), (videoWidth*0.625,0), (videoWidth*0.22,videoHeight), (0,videoHeight)]], dtype=np.int32)
+	cv2.fillPoly(roadmask, roi_corners, (0,0,0))
+	roi_corners = np.array([[(videoWidth,0), (videoWidth*0.375,0), (videoWidth*0.78,videoHeight), (videoWidth,videoHeight)]], dtype=np.int32)
+	cv2.fillPoly(roadmask, roi_corners, (0,0,0))
+	## apply the mask
+	copyFrame = cv2.bitwise_and(copyFrame, roadmask)
+	#cv2.imshow("regionOfInterest", copyFrame)
+
 	## blur the image to remove noise
 	##Knoten
 	copyFrame = cv2.bilateralFilter(copyFrame, 5, 90,40)
@@ -147,20 +159,21 @@ class ObjectDetectionNode:
 	#cv2.imshow("gamma3",gamma3)
 	#cv2.imshow("gamma2",gamma2)
 
-	# publish steering and throttle based on distance
-	if minDistance < self.breaking_distance/10.0:
+	# publish (steering) and throttle based on distance
+	#if minDistance < self.breaking_distance/10.0:
+	if minDistance < self.breaking_distance:
 		# hard stop
-		self.throttle_pub.publish(0.0)
-		self.steering_pub.publish(0.0)
-	elif minDistance < self.breaking_distance:
+		self.throttle_pub.publish(-1.0)
+		#self.steering_pub.publish(0.0)
+	#elif minDistance < self.breaking_distance:
 		# maximum throttle is 0.5
-		self.throttle_pub.publish(float(minDistance/(self.breaking_distance*2.0)))
-		halfVideoWidth = videoWidth * 0.5
-		deviation = (centerX - halfVideoWidth) / halfVideoWidth
-		if deviation > 0.0:
-			self.steering_pub.publish(1.0 - deviation)
-		else:
-			self.steering_pub.publish(-(1.0 + deviation))
+		#self.throttle_pub.publish(float(minDistance/(self.breaking_distance*2.0)))
+		#halfVideoWidth = videoWidth * 0.5
+		#deviation = -((centerX - halfVideoWidth) / halfVideoWidth)
+		#if deviation > 0.0:
+		#	self.steering_pub.publish(1.0 - deviation)
+		#else:
+		#	self.steering_pub.publish(-(1.0 + deviation))
 	
 
 	key = cv2.waitKey(waitValue)
