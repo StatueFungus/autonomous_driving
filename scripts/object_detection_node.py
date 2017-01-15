@@ -13,6 +13,7 @@ PUB_THROTTLE_TOPIC = "obj_throttle"
 QUEUE_SIZE = 10
 # valid default value only for resolution of 320x240
 DEFAULT_BREAKING_DISTANCE = 100
+DEFAULT_HEIGHT_SCALE_FACTOR = 0.625
 
 waitValue = 1
 
@@ -44,6 +45,7 @@ class ObjectDetectionNode:
         rospy.spin()
 
     def callback(self, data):
+        ## now = rospy.get_rostime()
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
@@ -77,18 +79,20 @@ class ObjectDetectionNode:
 	
 	## create a blank Image for the Mask
 	#copyFrame = np.zeros(resizedImage.shape, np.uint8)
-	copyFrame = np.zeros(cv_image.shape, np.uint8)
+	#copyFrame = np.zeros(cv_image.shape, np.uint8)
 	## img[y: y + h, x: x + w]
 	## crop the Image and store it to the blank image
 	#copyFrame[(videoHeight/2) : videoHeight, 0: videoWidth] = resizedImage[(videoHeight/2) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
-	copyFrame[(videoHeight/1.5) : videoHeight, 0: videoWidth] = cv_image[(videoHeight/1.5) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
+	copyFrame = cv_image[(videoHeight*DEFAULT_HEIGHT_SCALE_FACTOR) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
+	videoHeight, videoWidth , _ = copyFrame.shape
 
 	if self.roadmask is None:
 		## Region of Interest by creating mask
-		self.roadmask = np.ones(cv_image.shape, dtype=np.uint8) * 255
-		roi_corners = np.array([[(0,0), (videoWidth*0.625,0), (videoWidth*0.22,videoHeight), (0,videoHeight)]], dtype=np.int32)
+		self.roadmask = np.ones(copyFrame.shape, dtype=np.uint8) * 255
+		vh, vw, _ = copyFrame.shape
+		roi_corners = np.array([[(0,0), (vw*0.3,0), (0,vh)]], dtype=np.int32)
 		cv2.fillPoly(self.roadmask, roi_corners, (0,0,0))
-		roi_corners = np.array([[(videoWidth,0), (videoWidth*0.375,0), (videoWidth*0.78,videoHeight), (videoWidth,videoHeight)]], dtype=np.int32)
+		roi_corners = np.array([[(vw,0), (vw*0.7,0), (vw,vh)]], dtype=np.int32)
 		cv2.fillPoly(self.roadmask, roi_corners, (0,0,0))
 	else:
 		## apply the mask
@@ -97,6 +101,7 @@ class ObjectDetectionNode:
 
 	## blur the image to remove noise
 	##Knoten
+	## Bilateral Filter: Heavy Performance hit!
 	copyFrame = cv2.bilateralFilter(copyFrame, 5, 90,40)
 	copyFrame = cv2.GaussianBlur(copyFrame, (5,5),3)
 
@@ -110,7 +115,6 @@ class ObjectDetectionNode:
 	## Threshold the HSV image to get only yellow colors
 	hsvMask = cv2.inRange(hsv, lower_color, upper_color)
 	## close small holes an remove noise
-
 	
 	#equ = cv2.equalizeHist(copyFrame)
 	## threshold the gamma corrected (makes the image darker) image to get bright spots of the yellow object
@@ -119,14 +123,13 @@ class ObjectDetectionNode:
 	## threshold the gamma corrected (makes the image less darker then the previous one) image to get darker spots of the yellow object
 	gamma3 = correct_gamma(copyFrame,0.50)#35#50
 	hsvMask3 = cv2.inRange(cv2.cvtColor(gamma3, cv2.COLOR_BGR2HSV), lower_color, upper_color)
-	
+	 
 	## add all hsv masks toghter
 	theMask = hsvMask + hsvMask2 
 	theMask = theMask + hsvMask3
 	
 	## find contours in the thresholded mask image
 	contours, hierarchy = cv2.findContours(theMask.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-	
 	#cv2.drawContours(resizedImage, contours, -1, (0,0,255),1)
 	## remove all small contours
 	contours = cleanContours(contours)
@@ -143,11 +146,13 @@ class ObjectDetectionNode:
 			mom = cv2.moments(cnt)
 			#cv2.circle(resizedImage , (int(mom['m10']/mom['m00']) , int(mom['m01']/mom['m00'])),int(np.sqrt(cv2.contourArea(cnt)/np.pi)+0.5),(0,0,255),2)
 			#cv2.circle(resizedImage, (int(mom['m10']/mom['m00']) , int(mom['m01']/mom['m00'] + (np.sqrt(cv2.contourArea(cnt)/np.pi)))), 1, (20,0,255),2)
-			cv2.circle(cv_image, (int(mom['m10']/mom['m00']) , int(mom['m01']/mom['m00'] + (np.sqrt(cv2.contourArea(cnt)/np.pi)))), 1, (20,0,255),2)
+			#x = int(mom['m10']/mom['m00'])
+			y = int(mom['m01']/mom['m00'] + (np.sqrt(cv2.contourArea(cnt)/np.pi)))
+			#cv2.circle(cv_image, (int(x), int(videoHeight/DEFAULT_HEIGHT_SCALE_FACTOR + y)), 1, (20,0,255),2)
 			
 			## calculate the distance from the car to the object in pixels
-			distance = videoHeight - int(mom['m01']/mom['m00'] + (np.sqrt(cv2.contourArea(cnt)/np.pi)))
-			#print("Distance: " + str(distance) + " pixel")
+			distance = videoHeight - y
+			print("Distance: " + str(distance) + " pixel")
 			if minDistance > distance:
 				minDistance = distance
 				centerX = int(mom['m10']/mom['m00'])
@@ -179,8 +184,10 @@ class ObjectDetectionNode:
 	else:
 		self.throttle_pub.publish(0.425)
 	
+	## end = rospy.get_rostime()
+	## rospy.loginfo("Milliseconds    %s", str((end - now)/1000000.0))
 
-	key = cv2.waitKey(waitValue)
+	#key = cv2.waitKey(waitValue)
         
 	## if key & 0xFF == ord('p'):
 		## if(waitValue == 0):
