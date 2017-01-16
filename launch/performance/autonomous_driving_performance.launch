@@ -1,7 +1,7 @@
 <launch>
 
 	<arg name="debug" default="false" />
-	<arg name="bag_path" default="$(find autonomous_driving)/bags/kaliroom.bag"/>
+	<arg name="bag_path" default="$(find autonomous_driving)/bags/calibrated_140.bag"/>
 
 	<node pkg="rosbag" type="play" name="player" output="screen" args="-l $(arg bag_path)" if="$(arg debug)" ns="autonomous_driving"/>
 
