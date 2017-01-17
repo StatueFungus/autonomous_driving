@@ -1,3 +1,4 @@
 from image_preparator import ImagePreparator
 from visualizer import Visualizer
 from camera import Camera
+from inverse_perspective_mapping import InversePerspectiveMapping

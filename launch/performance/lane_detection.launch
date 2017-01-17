@@ -2,21 +2,17 @@
     
     <arg name="debug" default="false" />
 
-    <!-- Inverse Perspective Mapping -->
-    <node output="log" pkg="autonomous_driving" type="inverse_perspective_mapping_node.py" name="inverse_perspective_mapping_node" ns="autonomous_driving">
-        <remap from="image" to="image_raw"/>
-        <param name="camera/height" type="int" value="20" />
-        <param name="camera/aperture" type="int" value="140" />
-    </node>
-
     <!-- Lane Detection-->
     <node output="log" pkg="autonomous_driving" type="lane_detection_node.py" name="lane_detection_node" ns="autonomous_driving">
-        <remap from="image" to="image_preproc_ipm"/>
+        <remap from="image" to="image_raw"/>
+	<!-- Lane Tracking -->
         <param name="deviation" type="int" value="5" />
         <param name="border" type="int" value="0" />
+	<!-- Bild zuschneiden -->
 	<param name="above" type="double" value="0.85" />
         <param name="below" type="double" value="0.1" />    
-	<param name="side" type="double" value="0.449" />     
+	<param name="side" type="double" value="0.449" /> 
+	<!-- Canny -->    
 	<param name="threshold_low" type="int" value="50" />
         <param name="threshold_high" type="int" value="150" />
         <param name="aperture" type="int" value="3" />
