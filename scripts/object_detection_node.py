@@ -12,7 +12,7 @@ PUB_STEERING_TOPIC = "objectcontroller/steering"
 PUB_THROTTLE_TOPIC = "objectcontroller/throttle"
 QUEUE_SIZE = 10
 
-DEFAULT_BASE_THROTTLE = 0.425
+DEFAULT_BASE_THROTTLE = 0.5
 DEFAULT_HEIGHT_SCALE_FACTOR = 0.625
 DEFAULT_B_CALC_STEERING = False
 
@@ -44,10 +44,10 @@ class ObjectDetectionNode:
         self.steering_pub = rospy.Publisher(pub_steering_topic, Float64, queue_size=1)
         self.throttle_pub = rospy.Publisher(pub_throttle_topic, Float64, queue_size=1)
         self.roadmask = None
+        self.bLastFrameObjectDetected = False
         rospy.spin()
 
     def callback(self, data):
-        ## now = rospy.get_rostime()
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
@@ -74,28 +74,30 @@ class ObjectDetectionNode:
 		return contours
 
 	## resize the Image from 640*480 to 320*240
-	#resizedImage = cv2.resize(cv_image.copy(),None,fx=0.5, fy=0.5, interpolation = cv2.INTER_CUBIC)
-	
+	#cv_image = cv2.resize(cv_image.copy(),None,fx=0.5, fy=0.5, interpolation = cv2.INTER_CUBIC)
+
 	#videoHeight, videoWidth , _ = resizedImage.shape
 	videoHeight, videoWidth , _ = cv_image.shape
 	
+        ##now = rospy.get_rostime()
+
 	## create a blank Image for the Mask
 	#copyFrame = np.zeros(resizedImage.shape, np.uint8)
 	#copyFrame = np.zeros(cv_image.shape, np.uint8)
 	## img[y: y + h, x: x + w]
 	## crop the Image and store it to the blank image
 	#copyFrame[(videoHeight/2) : videoHeight, 0: videoWidth] = resizedImage[(videoHeight/2) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
-	copyFrame = cv_image#[(videoHeight*DEFAULT_HEIGHT_SCALE_FACTOR) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
+	copyFrame = cv_image[(videoHeight*DEFAULT_HEIGHT_SCALE_FACTOR) : videoHeight, videoWidth*0.1: videoWidth*0.9] # Crop from x, y, w, h -> 100, 200, 300, 400
 	videoHeight, videoWidth , _ = copyFrame.shape
-
-	if self.roadmask is None:
+	
+        #if self.roadmask is None:
 		## Region of Interest by creating mask
-		self.roadmask = np.ones(copyFrame.shape, dtype=np.uint8) * 255
-		vh, vw, _ = copyFrame.shape
-		roi_corners = np.array([[(0,0), (vw*0.3,0), (0,vh)]], dtype=np.int32)
-		cv2.fillPoly(self.roadmask, roi_corners, (0,0,0))
-		roi_corners = np.array([[(vw,0), (vw*0.7,0), (vw,vh)]], dtype=np.int32)
-		cv2.fillPoly(self.roadmask, roi_corners, (0,0,0))
+		#self.roadmask = np.ones(copyFrame.shape, dtype=np.uint8) * 255
+		#vh, vw, _ = copyFrame.shape
+		#roi_corners = np.array([[(0,0), (vw*0.3,0), (vw*0.1,vh), (0,vh)]], dtype=np.int32)
+		#cv2.fillPoly(self.roadmask, roi_corners, (0,0,0))
+		#roi_corners = np.array([[(vw,0), (vw*0.7,0),  (vw*0.9,vh), (vw,vh)]], dtype=np.int32)
+		#cv2.fillPoly(self.roadmask, roi_corners, (0,0,0))
 	#else:
 		## apply the mask
 		#copyFrame = cv2.bitwise_and(copyFrame, self.roadmask)
@@ -104,7 +106,7 @@ class ObjectDetectionNode:
 	## blur the image to remove noise
 	##Knoten
 	## Bilateral Filter: Heavy Performance hit!
-	copyFrame = cv2.bilateralFilter(copyFrame, 5, 90,40)
+	#copyFrame = cv2.bilateralFilter(copyFrame, 5, 90,40)
 	copyFrame = cv2.GaussianBlur(copyFrame, (5,5),3)
 
 	## change the color system from BGR to HSV
@@ -120,7 +122,7 @@ class ObjectDetectionNode:
 	
 	#equ = cv2.equalizeHist(copyFrame)
 	## threshold the gamma corrected (makes the image darker) image to get bright spots of the yellow object
-	gamma2 = correct_gamma(copyFrame,0.30)
+	gamma2 = correct_gamma(copyFrame,0.32)
 	hsvMask2 = cv2.inRange(cv2.cvtColor(gamma2, cv2.COLOR_BGR2HSV), lower_color, upper_color) # 0.32
 	## threshold the gamma corrected (makes the image less darker then the previous one) image to get darker spots of the yellow object
 	gamma3 = correct_gamma(copyFrame,0.50)#35#50
@@ -160,7 +162,8 @@ class ObjectDetectionNode:
 				centerX = int(mom['m10']/mom['m00'])
 	
 	##cv2.imshow("original", resizedImage)
-	cv2.imshow("original", cv_image)
+	#cv2.imshow("original", cv_image)
+	cv2.imshow("croppedFrameBlurred", copyFrame)
 	cv2.imshow("theMask", theMask)
 	cv2.imshow("hsvMask", hsvMask)
 	cv2.imshow("hsvMask2", hsvMask2)
@@ -177,6 +180,7 @@ class ObjectDetectionNode:
 
 	## publish steering and throttle based on distance
 	if minDistance < videoHeight:
+                self.bLastFrameObjectDetected = True
 		if self.b_calc_steering is True:
 			## Calculate Steering
 			deviation = (1.0 - ((centerX) / float(videoWidth))) + 0.5
@@ -185,17 +189,18 @@ class ObjectDetectionNode:
 			## Always steer to left
 			self.steering_pub.publish(-deviation)
 			## Get Throttle
-			self.base_throttle = rospy.get_param("/autonomous_driving/object_detection_node/base_throttle")
-			self.throttle_pub.publish(self.base_throttle)
+			self.throttle_pub.publish(self.base_throttle * 0.9)
 		else:
 			## hard stop
 			self.throttle_pub.publish(-1.0)
 	else:
-		self.base_throttle = rospy.get_param("/autonomous_driving/object_detection_node/base_throttle")
+                if self.bLastFrameObjectDetected is True:
+		        self.steering_pub.publish(0.0)
+                        self.bLastFrameObjectDetected = False
 		self.throttle_pub.publish(self.base_throttle)
 	
-	## end = rospy.get_rostime()
-	## rospy.loginfo("Milliseconds    %s", str((end - now)/1000000.0))
+	#end = rospy.get_rostime()
+	#rospy.loginfo("Milliseconds    %s", str((end - now)/1000000.0))
 
 	key = cv2.waitKey(waitValue)
         
