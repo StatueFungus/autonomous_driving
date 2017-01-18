@@ -47,6 +47,35 @@ class ImagePreparator:
         cv2.fillPoly(image, [pts], color_black)
         return image
 
+    def crop(self, image, above=0.0, below=0.0, side=0.0):
+        '''
+            Bild wird zugeschnitten.
+
+            Parameter
+            ---------
+            image : das Bild
+            above (optional) : Float
+                Angabe in Prozent, wie viel vom oberen Bild zugeschnitten werden soll.
+                Default Wert ist 0.0
+                >> 1.0 entspricht dabei 100%
+            below (optional) : Float
+                Angabe in Prozent, wie viel vom unteren Bild zugeschnitten werden soll.
+                Default Wert ist 0.0
+                >> 1.0 entspricht dabei 100%
+            side (optional) : Float
+                Angabe in Prozent, wie viel von beiden Seiten des Bildes zugeschnitten werden soll.
+                Default Wert ist 0.0
+                >> 0.5 entspricht dabei 100%
+
+            Rückgabe
+            ---------
+            image : zugeschnittenes Bild
+
+        '''
+        height, width, channels = image.shape
+        image = image[int((height*above)):height - int((height*below)), int((width*side)):width - int((width*side))]
+        return image
+
     def grayscale(self, image):
         '''
             Bild wird in Graustufen konvertiert.
