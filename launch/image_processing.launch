@@ -1,10 +1,10 @@
 <launch>
     
     <arg name="debug" default="false" />
-    
+
     <!-- Inverse Perspective Mapping -->
     <node output="log" pkg="autonomous_driving" type="inverse_perspective_mapping_node.py" name="inverse_perspective_mapping_node" ns="autonomous_driving">
-        <remap from="image" to="image_preproc_resized"/>
+        <remap from="image" to="image_raw"/>
         <param name="camera/height" type="int" value="20" />
         <param name="camera/aperture" type="int" value="140" />
     </node>

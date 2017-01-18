@@ -7,9 +7,9 @@
 
     <!-- PID Controller -->
     <node pkg="pid" type="controller" name="controller" ns="autonomous_driving" output="screen">
-        <param name="Kp" value="-2.0" />
-        <param name="Ki" value="-2.0" />
-        <param name="Kd" value="-0.1" />
+        <param name="Kp" value="-0.125" />
+        <param name="Ki" value="-0.005" />
+        <param name="Kd" value="0" />
         <param name="upper_limit" value="1000" />
         <param name="lower_limit" value="-1000" />
         <param name="windup_limit" value="10" />
@@ -21,7 +21,7 @@
     <node pkg="autonomous_driving" type="rovercontrol" name="maia" output="screen" ns="autonomous_driving" unless="$(arg debug)">
     	<remap from="lanecontroller/steering" to="control_effort"/>
 	<remap from="lanecontroller/throttle" to="lanecontroller/throttle"/>
-	<remap from="objectcontroller/steering" to="objectcontroller/steering"/>
-	<remap from="objectcontroller/throttle" to="objectcontroller/throttle"/>
+	<remap from="objectcontroller/steering" to="obj_steering"/>
+	<remap from="objectcontroller/throttle" to="obj_throttle"/>
     </node>
 </launch>
