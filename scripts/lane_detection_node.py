@@ -20,9 +20,8 @@ RESET_SERVICE = "reset"
 
 QUEUE_SIZE = 1
 
-# valide default Werte für eine Bildauflösung von 320x240
 DEFAULT_LANE_WIDTH = 20
-DEFAULT_SEGMENT_START = 210
+DEFAULT_SEGMENT_START = 6
 DEFAULT_SEGMENT_AMOUNT = 1
 
 
@@ -108,9 +107,9 @@ class LaneDetectionNode:
             rospy.logerr(e)
 
     def init_lanemodel(self):
-        lane_width = rospy.get_param("/autonomous_driving/lane_tracking_node/lane_width", DEFAULT_LANE_WIDTH)
-        segment_start = rospy.get_param("/autonomous_driving/lane_tracking_node/segment_start", DEFAULT_SEGMENT_START)
-        segment_amount = rospy.get_param("/autonomous_driving/lane_tracking_node/segment_amount", DEFAULT_SEGMENT_AMOUNT)
+        lane_width = rospy.get_param("/autonomous_driving/lane_detection_node/lane_width", DEFAULT_LANE_WIDTH)
+        segment_start = rospy.get_param("/autonomous_driving/lane_detection_node/segment_start", DEFAULT_SEGMENT_START)
+        segment_amount = rospy.get_param("/autonomous_driving/lane_detection_node/segment_amount", DEFAULT_SEGMENT_AMOUNT)
         self.lane_model = LaneModel(lane_width, segment_amount, segment_start)
 
     def reset_callback(self, req):
