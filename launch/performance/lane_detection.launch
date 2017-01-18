@@ -6,7 +6,7 @@
     <node output="log" pkg="autonomous_driving" type="lane_detection_node.py" name="lane_detection_node" ns="autonomous_driving">
         <remap from="image" to="image_raw"/>
 	<!-- Lane Tracking -->
-        <param name="deviation" type="int" value="5" />
+        <param name="deviation" type="int" value="3" />
         <param name="border" type="int" value="0" />
 	<!-- Bild zuschneiden -->
 	<param name="above" type="double" value="0.85" />
@@ -17,9 +17,9 @@
         <param name="threshold_high" type="int" value="150" />
         <param name="aperture" type="int" value="3" />
 	<!-- Strassenbreite in Pixel -->
-        <param name="lane_width" type="int" value="38" />
+        <param name="lane_width" type="int" value="20" />
         <!-- Startpunkt in Pixel des ersten Segments -->
-        <param name="segment_start" type="int" value="15" />
+        <param name="segment_start" type="int" value="6" />
         <!-- Anzahl Segmente -->
         <param name="segment_amount" type="int" value="1" />
     </node>
