@@ -48,6 +48,7 @@ class LaneTrackingNode:
 
         if self.reset_tracking is True:
             self.init_lanemodel()
+            self.reset_tracking = False
 
         self.lane_model.update_segments(cv_image.copy())
         self.lane_model.draw_segments(cv_image)
