@@ -5,6 +5,8 @@
     <!-- Circle detection -->
     <node pkg="autonomous_driving" type="object_detection_node.py" name="object_detection_node" ns="autonomous_driving" output="screen">
         <remap from="image" to="image_raw"/>
+	<remap from="objectcontroller/steering" to="objectcontroller/steering"/>
+	<remap from="objectcontroller/throttle" to="objectcontroller/throttle"/>
 	<param name="base_throttle" type="double" value="0.425" />
 	<param name="b_calc_steering" type="bool" value="false" />
     </node>

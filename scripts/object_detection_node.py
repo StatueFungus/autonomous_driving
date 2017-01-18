@@ -8,8 +8,8 @@ from cv_bridge import CvBridge, CvBridgeError
 
 NODE_NAME = "object_detection_node"
 SUB_TOPIC = "image"
-PUB_STEERING_TOPIC = "obj_steering"
-PUB_THROTTLE_TOPIC = "obj_throttle"
+PUB_STEERING_TOPIC = "objectcontroller/steering"
+PUB_THROTTLE_TOPIC = "objectcontroller/throttle"
 QUEUE_SIZE = 10
 
 DEFAULT_BASE_THROTTLE = 0.425
