@@ -85,7 +85,7 @@ class ObjectDetectionNode:
 	## img[y: y + h, x: x + w]
 	## crop the Image and store it to the blank image
 	#copyFrame[(videoHeight/2) : videoHeight, 0: videoWidth] = resizedImage[(videoHeight/2) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
-	copyFrame = cv_image[(videoHeight*DEFAULT_HEIGHT_SCALE_FACTOR) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
+	copyFrame = cv_image#[(videoHeight*DEFAULT_HEIGHT_SCALE_FACTOR) : videoHeight, 0: videoWidth] # Crop from x, y, w, h -> 100, 200, 300, 400
 	videoHeight, videoWidth , _ = copyFrame.shape
 
 	if self.roadmask is None:
@@ -96,9 +96,9 @@ class ObjectDetectionNode:
 		cv2.fillPoly(self.roadmask, roi_corners, (0,0,0))
 		roi_corners = np.array([[(vw,0), (vw*0.7,0), (vw,vh)]], dtype=np.int32)
 		cv2.fillPoly(self.roadmask, roi_corners, (0,0,0))
-	else:
+	#else:
 		## apply the mask
-		copyFrame = cv2.bitwise_and(copyFrame, self.roadmask)
+		#copyFrame = cv2.bitwise_and(copyFrame, self.roadmask)
 		#cv2.imshow("regionOfInterest", copyFrame)
 
 	## blur the image to remove noise
@@ -111,7 +111,7 @@ class ObjectDetectionNode:
 	hsv = cv2.cvtColor(copyFrame, cv2.COLOR_BGR2HSV)
 	
 	## range of yellow color in HSV
-	lower_color = np.array([38,175,105]) # 35#200 #100
+	lower_color = np.array([38,175,115]) # 35#200 #100
 	upper_color = np.array([70,240,240])
 	
 	## Threshold the HSV image to get only yellow colors
@@ -120,7 +120,7 @@ class ObjectDetectionNode:
 	
 	#equ = cv2.equalizeHist(copyFrame)
 	## threshold the gamma corrected (makes the image darker) image to get bright spots of the yellow object
-	gamma2 = correct_gamma(copyFrame,0.20)
+	gamma2 = correct_gamma(copyFrame,0.30)
 	hsvMask2 = cv2.inRange(cv2.cvtColor(gamma2, cv2.COLOR_BGR2HSV), lower_color, upper_color) # 0.32
 	## threshold the gamma corrected (makes the image less darker then the previous one) image to get darker spots of the yellow object
 	gamma3 = correct_gamma(copyFrame,0.50)#35#50
@@ -137,7 +137,7 @@ class ObjectDetectionNode:
 	contours = cleanContours(contours)
 	
 	## draw all contours
-	#cv2.drawContours(resizedImage, contours, -1, (0,255,0), 3)
+	#cv2.drawContours(cv_image, contours, -1, (0,255,0), 3)
 
 	## get the south point of the contour
 	minDistance = 99999;
@@ -154,17 +154,17 @@ class ObjectDetectionNode:
 			
 			## calculate the distance from the car to the object in pixels
 			distance = videoHeight - y
-			#print("Distance: " + str(distance) + " pixel")
+			print("Distance: " + str(distance) + " pixel")
 			if minDistance > distance:
 				minDistance = distance
 				centerX = int(mom['m10']/mom['m00'])
 	
-	#cv2.imshow("original", resizedImage)
-	## cv2.imshow("original", cv_image)
-	## cv2.imshow("theMask", theMask)
-	## cv2.imshow("hsvMask", hsvMask)
-	## cv2.imshow("hsvMask2", hsvMask2)
-	## cv2.imshow("hsvMask3", hsvMask3)
+	##cv2.imshow("original", resizedImage)
+	cv2.imshow("original", cv_image)
+	cv2.imshow("theMask", theMask)
+	cv2.imshow("hsvMask", hsvMask)
+	cv2.imshow("hsvMask2", hsvMask2)
+	cv2.imshow("hsvMask3", hsvMask3)
 	#cv2.imshow("gamma3",gamma3)
 	#cv2.imshow("gamma2",gamma2)
 
@@ -197,7 +197,7 @@ class ObjectDetectionNode:
 	## end = rospy.get_rostime()
 	## rospy.loginfo("Milliseconds    %s", str((end - now)/1000000.0))
 
-	#key = cv2.waitKey(waitValue)
+	key = cv2.waitKey(waitValue)
         
 	## if key & 0xFF == ord('p'):
 		## if(waitValue == 0):
