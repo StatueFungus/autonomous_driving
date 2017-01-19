@@ -13,10 +13,12 @@ PUB_THROTTLE_TOPIC = "objectcontroller/throttle"
 QUEUE_SIZE = 10
 
 DEFAULT_BASE_THROTTLE = 0.5
-DEFAULT_HEIGHT_SCALE_FACTOR = 0.625
+DEFAULT_HEIGHT_SCALE_FACTOR = 0.58
 DEFAULT_B_CALC_STEERING = False
-
+DEBUG_FLAG = False
 waitValue = 1
+
+
 
 ## cv2.namedWindow("original")
 ## cv2.moveWindow("original", 650,350)
@@ -40,6 +42,7 @@ class ObjectDetectionNode:
         self.bridge = CvBridge()
         self.base_throttle = rospy.get_param("/autonomous_driving/object_detection_node/base_throttle", DEFAULT_BASE_THROTTLE)
         self.b_calc_steering = rospy.get_param("/autonomous_driving/object_detection_node/b_calc_steering", DEFAULT_B_CALC_STEERING)
+        self.debug_flag = rospy.get_param("/autonomous_driving/object_detection_node/debug_flag", DEBUG_FLAG)
         self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
         self.steering_pub = rospy.Publisher(pub_steering_topic, Float64, queue_size=1)
         self.throttle_pub = rospy.Publisher(pub_throttle_topic, Float64, queue_size=1)
@@ -156,18 +159,21 @@ class ObjectDetectionNode:
 			
 			## calculate the distance from the car to the object in pixels
 			distance = videoHeight - y
-			print("Distance: " + str(distance) + " pixel")
+			if self.debug_flag:
+				print("Distance: " + str(distance) + " pixel")
 			if minDistance > distance:
 				minDistance = distance
 				centerX = int(mom['m10']/mom['m00'])
 	
 	##cv2.imshow("original", resizedImage)
 	#cv2.imshow("original", cv_image)
-	cv2.imshow("croppedFrameBlurred", copyFrame)
-	cv2.imshow("theMask", theMask)
-	cv2.imshow("hsvMask", hsvMask)
-	cv2.imshow("hsvMask2", hsvMask2)
-	cv2.imshow("hsvMask3", hsvMask3)
+	if self.debug_flag:
+		cv2.imshow("croppedFrameBlurred", copyFrame)
+		cv2.imshow("theMask", theMask)
+		cv2.imshow("hsvMask", hsvMask)
+		cv2.imshow("hsvMask2", hsvMask2)
+		cv2.imshow("hsvMask3", hsvMask3)
+		key = cv2.waitKey(waitValue)
 	#cv2.imshow("gamma3",gamma3)
 	#cv2.imshow("gamma2",gamma2)
 
@@ -193,6 +199,8 @@ class ObjectDetectionNode:
 		else:
 			## hard stop
 			self.throttle_pub.publish(-1.0)
+			self.throttle_pub.publish(0.0)
+			self.throttle_pub.publish(-1.0)
 	else:
                 if self.bLastFrameObjectDetected is True:
 		        self.steering_pub.publish(0.0)
@@ -202,7 +210,6 @@ class ObjectDetectionNode:
 	#end = rospy.get_rostime()
 	#rospy.loginfo("Milliseconds    %s", str((end - now)/1000000.0))
 
-	key = cv2.waitKey(waitValue)
         
 	## if key & 0xFF == ord('p'):
 		## if(waitValue == 0):
