@@ -49,14 +49,22 @@ class LaneDetector:
         right_candidate_valid = self._validate_candidate(right_candidate, segment_center, point_distance)
 
         # definiere linken und rechten Punkt
+        left_point = segment.left_point
+        right_point = segment.right_point
+
         if left_candidate_valid and right_candidate_valid:
-            return int(left_candidate), int(right_candidate)
+            left_point = left_candidate
+            right_point = right_candidate
         elif left_candidate_valid and not right_candidate_valid:
-            return int(left_candidate), int(left_candidate + point_distance)
+            left_point = left_candidate
+            right_point = int(left_candidate + point_distance)
         elif not left_candidate_valid and right_candidate_valid:
-            return int(right_candidate - point_distance), int(right_candidate)
-        else:
-            return segment.left_point, segment.right_point
+            left_point = int(right_candidate - point_distance)
+            right_point = right_candidate        
+        if abs(right_point - left_point) >= 18:
+            return left_point, right_point
+
+        return segment.left_point, segment.right_point
 
     def _define_candidate(self, point_score, segment_center, point_distance, left):
         if point_score:
