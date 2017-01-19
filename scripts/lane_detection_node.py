@@ -86,6 +86,11 @@ class LaneDetectionNode:
         # canny
         canny = self.img_prep.edge_detection(blurred, self.threshold_low, self.threshold_high, self.aperture)
 
+        heigth, width = canny.shape
+
+        cv2.line(canny, (0, 4/2), (18/2, heigth), (0, 0, 0), 2)
+        cv2.line(canny, (width, 4/2), (width - 18/2, heigth), (0, 0, 0), 2)
+
         # Lane Detection
         canny = cv2.cvtColor(canny, cv2.COLOR_GRAY2BGR)
         self.lane_model.update_segments(canny.copy())
