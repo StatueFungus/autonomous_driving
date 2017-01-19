@@ -9,5 +9,6 @@
 	<remap from="objectcontroller/throttle" to="objectcontroller/throttle"/>
 	<param name="base_throttle" type="double" value="0.5" />
 	<param name="b_calc_steering" type="bool" value="false" />
+        <param name="debug_flag" type="bool" value="$(arg debug)" />
     </node>
 </launch>
