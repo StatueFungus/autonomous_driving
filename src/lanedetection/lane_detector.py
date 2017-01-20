@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-WIDTH_TOLERANCE = 0.25  # Tolerierte Abweichung zwischen zwei hintereinander gemessenen Straßenbreiten
+WIDTH_TOLERANCE = 0.35  # Tolerierte Abweichung zwischen zwei hintereinander gemessenen Straßenbreiten
+MIN_LANE_DISTANCE = 0.90  # Prozentualer Mindestabstand zwischen zwei Straßenmarkierungen
 
 
 class LaneDetector:
@@ -20,6 +21,7 @@ class LaneDetector:
         '''
         self.lane_width = lane_width
         self.lane_width_tolerance = round(self.lane_width * WIDTH_TOLERANCE)
+        self.min_lane_distance = round(self.lane_width * MIN_LANE_DISTANCE)
 
     def find_lane_points(self, segment):
         '''
@@ -60,19 +62,20 @@ class LaneDetector:
             right_point = int(left_candidate + point_distance)
         elif not left_candidate_valid and right_candidate_valid:
             left_point = int(right_candidate - point_distance)
-            right_point = right_candidate        
-        if abs(right_point - left_point) >= 18:
-            return left_point, right_point
+            right_point = right_candidate
+        if abs(right_point - left_point) >= self.min_lane_distance:
+            return int(left_point), int(right_point)
 
         return segment.left_point, segment.right_point
 
     def _define_candidate(self, point_score, segment_center, point_distance, left):
         if point_score:
             return max(point_score, key=point_score.get)
-        if left:
-            return segment_center + round(point_distance / 2)
-        else:
-            return segment_center - round(point_distance / 2)
+        return None
+        #if left:
+        #    return segment_center + round(point_distance / 2)
+        #else:
+        #    return segment_center - round(point_distance / 2)
 
     def _calc_point_score(self, points, old_point):
         point_score = {}
@@ -103,6 +106,8 @@ class LaneDetector:
             line_distance : Integer
                 Straßenbreite des vorherigen Frames.
         '''
+        if point is None:
+            return False
         distance_seg_center = abs(point - segment_center)
         diff_distance_seg_center = abs(distance_seg_center - round(line_distance / 2))
         if diff_distance_seg_center <= self.lane_width_tolerance:
