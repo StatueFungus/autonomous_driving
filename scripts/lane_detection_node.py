@@ -86,9 +86,13 @@ class LaneDetectionNode:
         # canny
         canny = self.img_prep.edge_detection(blurred, self.threshold_low, self.threshold_high, self.aperture)
 
-        #heigth, width = canny.shape
-        #cv2.line(canny, (0, 4/2), (18/2, heigth), (0, 0, 0), 2)
-        #cv2.line(canny, (width, 4/2), (width - 18/2, heigth), (0, 0, 0), 2)
+        heigth, width = canny.shape
+        if width == 63:  # TODO dirty hack
+            cv2.line(canny, (0, 4/2), (18/2, heigth), (0, 0, 0), 2)
+            cv2.line(canny, (width, 4/2), (width - 18/2, heigth), (0, 0, 0), 2)
+        else:
+            cv2.line(canny, (0, 4), (18, heigth), (0, 0, 0), 2)
+            cv2.line(canny, (width, 4), (width - 18, heigth), (0, 0, 0), 2)
 
         # Lane Detection
         canny = cv2.cvtColor(canny, cv2.COLOR_GRAY2BGR)
