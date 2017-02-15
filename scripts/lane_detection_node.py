@@ -6,6 +6,7 @@ from imagepreprocessing import ImagePreparator
 from imagepreprocessing import InversePerspectiveMapping
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float64
+from std_srvs.srv import Empty, EmptyResponse
 from cv_bridge import CvBridge, CvBridgeError
 import cv2
 import rospy
@@ -16,17 +17,21 @@ SUB_BASE_THROTTLE_TOPIC = "baseThrottle"
 PUB_TOPIC = "debug_image"
 PUB_SETPOINT_TOPIC = "setpoint"
 PUB_STATE_TOPIC = "state"
+<<<<<<< HEAD
 PUB_THROTTLE_TOPIC = "lanecontroller/throttle"
+=======
+RESET_SERVICE = "reset"
+
+>>>>>>> 724b78e752c7e9202833be6a59ebde689ed9b348
 QUEUE_SIZE = 1
 
-# valide default Werte für eine Bildauflösung von 320x240
 DEFAULT_LANE_WIDTH = 20
-DEFAULT_SEGMENT_START = 210
+DEFAULT_SEGMENT_START = 6
 DEFAULT_SEGMENT_AMOUNT = 1
 
-class LaneDetectionNode:
 
-    def __init__(self, node_name, sub_topic, sub_base_throttle_topic, pub_topic, pub_setpoint_topic, pub_state_topic, pub_throttle_topic):
+class LaneDetectionNode:
+    def __init__(self, node_name, sub_topic, sub_base_throttle_topic, pub_topic, pub_setpoint_topic, pub_state_topic, pub_throttle_topic, reset_service):
         self.bridge = CvBridge()
         self.img_prep = ImagePreparator()
         self.ipm = InversePerspectiveMapping()
@@ -36,9 +41,12 @@ class LaneDetectionNode:
         self.setpoint_pub = rospy.Publisher(pub_setpoint_topic, Float64, queue_size=QUEUE_SIZE)
         self.state_pub = rospy.Publisher(pub_state_topic, Float64, queue_size=QUEUE_SIZE)
         self.throttle_pub = rospy.Publisher(pub_throttle_topic, Float64, queue_size=QUEUE_SIZE)
-        
+
+        self.reset_srv = rospy.Service(reset_service, Empty, self.reset_callback)
+        self.reset_tracking = False
+
         rospy.init_node(node_name, anonymous=True)
-        
+
         self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
         self.base_throttle_sub = rospy.Subscriber(sub_base_throttle_topic, Float64, self.callbackBaseThrottle)
 
@@ -60,10 +68,7 @@ class LaneDetectionNode:
         self.aperture = rospy.get_param("/autonomous_driving/lane_detection_node/aperture", 3)
 
         # Lane Tracking
-        lane_width = rospy.get_param("/autonomous_driving/lane_detection_node/lane_width", DEFAULT_LANE_WIDTH)
-        segment_start = rospy.get_param("/autonomous_driving/lane_detection_node/segment_start", DEFAULT_SEGMENT_START)
-        segment_amount = rospy.get_param("/autonomous_driving/lane_detection_node/segment_amount", DEFAULT_SEGMENT_AMOUNT)
-        self.lane_model = LaneModel(lane_width, segment_amount, segment_start)
+        self.init_lanemodel()
 
         rospy.spin()
 
@@ -92,11 +97,23 @@ class LaneDetectionNode:
         # canny
         canny = self.img_prep.edge_detection(blurred, self.threshold_low, self.threshold_high, self.aperture)
 
+        heigth, width = canny.shape
+        if width == 63:  # TODO dirty hack
+            cv2.line(canny, (0, 4/2), (18/2, heigth), (0, 0, 0), 2)
+            cv2.line(canny, (width, 4/2), (width - 18/2, heigth), (0, 0, 0), 2)
+        else:
+            cv2.line(canny, (0, 4), (18, heigth), (0, 0, 0), 2)
+            cv2.line(canny, (width, 4), (width - 18, heigth), (0, 0, 0), 2)
+
         # Lane Detection
         canny = cv2.cvtColor(canny, cv2.COLOR_GRAY2BGR)
         self.lane_model.update_segments(canny.copy())
         self.lane_model.draw_segments(canny)
         state_point_x = self.lane_model.state_point_x()
+
+        if self.reset_tracking is True:
+            self.init_lanemodel()
+            self.reset_tracking = False
 
         # publish to pid
         try:
@@ -112,13 +129,24 @@ class LaneDetectionNode:
                 elif devThrottle > 0.25:
                     devThrottle = 0.25
                 self.throttle_pub.publish((1.0 - devThrottle) * self.base_throttle)
-                #self.throttle_pub.publish(devThrottle)
         except CvBridgeError as e:
             rospy.logerr(e)
 
+    def init_lanemodel(self):
+        lane_width = rospy.get_param("/autonomous_driving/lane_detection_node/lane_width", DEFAULT_LANE_WIDTH)
+        segment_start = rospy.get_param("/autonomous_driving/lane_detection_node/segment_start", DEFAULT_SEGMENT_START)
+        segment_amount = rospy.get_param("/autonomous_driving/lane_detection_node/segment_amount", DEFAULT_SEGMENT_AMOUNT)
+        self.lane_model = LaneModel(lane_width, segment_amount, segment_start)
+
+    def reset_callback(self, req):
+        rospy.loginfo("Reset Lanetracking")
+        self.reset_tracking = True
+        return EmptyResponse()
+
+
 def main():
     try:
-        LaneDetectionNode(NODE_NAME, SUB_TOPIC, SUB_BASE_THROTTLE_TOPIC, PUB_TOPIC, PUB_SETPOINT_TOPIC, PUB_STATE_TOPIC, PUB_THROTTLE_TOPIC)
+        LaneDetectionNode(NODE_NAME, SUB_TOPIC, SUB_BASE_THROTTLE_TOPIC, PUB_TOPIC, PUB_SETPOINT_TOPIC, PUB_STATE_TOPIC, PUB_THROTTLE_TOPIC, RESET_SERVICE)
     except KeyboardInterrupt:
         rospy.loginfo("Shutting down node %s", NODE_NAME)
 
