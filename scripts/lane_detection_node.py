@@ -12,9 +12,11 @@ import rospy
 
 NODE_NAME = "lane_detection_node"
 SUB_TOPIC = "image"
+SUB_BASE_THROTTLE_TOPIC = "baseThrottle"
 PUB_TOPIC = "debug_image"
 PUB_SETPOINT_TOPIC = "setpoint"
 PUB_STATE_TOPIC = "state"
+PUB_THROTTLE_TOPIC = "lanecontroller/throttle"
 QUEUE_SIZE = 1
 
 # valide default Werte für eine Bildauflösung von 320x240
@@ -24,20 +26,24 @@ DEFAULT_SEGMENT_AMOUNT = 1
 
 class LaneDetectionNode:
 
-    def __init__(self, node_name, sub_topic, pub_topic,  pub_setpoint_topic, pub_state_topic):
+    def __init__(self, node_name, sub_topic, sub_base_throttle_topic, pub_topic, pub_setpoint_topic, pub_state_topic, pub_throttle_topic):
         self.bridge = CvBridge()
         self.img_prep = ImagePreparator()
         self.ipm = InversePerspectiveMapping()
 
         # Publisher
         self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
-        self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
         self.setpoint_pub = rospy.Publisher(pub_setpoint_topic, Float64, queue_size=QUEUE_SIZE)
         self.state_pub = rospy.Publisher(pub_state_topic, Float64, queue_size=QUEUE_SIZE)
+        self.throttle_pub = rospy.Publisher(pub_throttle_topic, Float64, queue_size=QUEUE_SIZE)
         
         rospy.init_node(node_name, anonymous=True)
         
         self.image_sub = rospy.Subscriber(sub_topic, Image, self.callback)
+        self.base_throttle_sub = rospy.Subscriber(sub_base_throttle_topic, Float64, self.callbackBaseThrottle)
+
+        # Base Throttle
+        self.base_throttle = rospy.get_param("/autonomous_driving/lane_detection_node/base_throttle", 0.5)
 
         # Crop Parameters
         self.above_value = rospy.get_param("/autonomous_driving/lane_detection_node/above", 0.58)
@@ -60,6 +66,9 @@ class LaneDetectionNode:
         self.lane_model = LaneModel(lane_width, segment_amount, segment_start)
 
         rospy.spin()
+
+    def callbackBaseThrottle(self, data):
+        self.base_throttle = data.data
 
     def callback(self, data):
         try:
@@ -95,13 +104,21 @@ class LaneDetectionNode:
             self.setpoint_pub.publish(0.0)
             if state_point_x:
 		heigth, width, _ = canny.shape
-                self.state_pub.publish(state_point_x - int(width/2))
+                deviation = state_point_x - int(width/2)
+                self.state_pub.publish(deviation)
+                devThrottle = abs(deviation / 30.0) 
+                if devThrottle < 0.1:
+                    devThrottle = 0.0
+                elif devThrottle > 0.25:
+                    devThrottle = 0.25
+                self.throttle_pub.publish((1.0 - devThrottle) * self.base_throttle)
+                #self.throttle_pub.publish(devThrottle)
         except CvBridgeError as e:
             rospy.logerr(e)
 
 def main():
     try:
-        LaneDetectionNode(NODE_NAME, SUB_TOPIC, PUB_TOPIC, PUB_SETPOINT_TOPIC, PUB_STATE_TOPIC)
+        LaneDetectionNode(NODE_NAME, SUB_TOPIC, SUB_BASE_THROTTLE_TOPIC, PUB_TOPIC, PUB_SETPOINT_TOPIC, PUB_STATE_TOPIC, PUB_THROTTLE_TOPIC)
     except KeyboardInterrupt:
         rospy.loginfo("Shutting down node %s", NODE_NAME)
 
