@@ -1,9 +1,0 @@
-<launch>
-  <param name="ros_roll" value="0.0" />
-  <param name="ros_pitch" value="0.0" />
-  <param name="ros_yaw" value="0.0" />
-  <param name="ros_throttle" value="0.0" />
-
-  <node name="actuator_control" pkg="autonomous_driving" type="actuator_control" />
-  <node name="offboard_mode" pkg="autonomous_driving" type="offboard_node"  />
-</launch>

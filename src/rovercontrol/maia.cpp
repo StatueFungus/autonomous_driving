@@ -4,7 +4,7 @@
 #include "pixhawk.h"
 
 Maia::Maia(RosController* ros)
-    : laneSteeringDisabled(false), laneThrottleDisabled(false), laneDisableDuration(ros::Duration(0.2))
+    : laneSteeringDisabled(false), laneThrottleDisabled(false), laneDisableDuration(ros::Duration(0.4))
 {
     pixhawk = new Pixhawk(ros);
     lanecontroller = new LaneController(ros);
