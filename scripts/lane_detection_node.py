@@ -17,12 +17,8 @@ SUB_BASE_THROTTLE_TOPIC = "baseThrottle"
 PUB_TOPIC = "debug_image"
 PUB_SETPOINT_TOPIC = "setpoint"
 PUB_STATE_TOPIC = "state"
-<<<<<<< HEAD
 PUB_THROTTLE_TOPIC = "lanecontroller/throttle"
-=======
 RESET_SERVICE = "reset"
-
->>>>>>> 724b78e752c7e9202833be6a59ebde689ed9b348
 QUEUE_SIZE = 1
 
 DEFAULT_LANE_WIDTH = 20
