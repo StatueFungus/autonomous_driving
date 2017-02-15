@@ -47,7 +47,7 @@ class LaneDetectionNode:
         self.base_throttle_sub = rospy.Subscriber(sub_base_throttle_topic, Float64, self.callbackBaseThrottle)
 
         # Base Throttle
-        self.base_throttle = rospy.get_param("/autonomous_driving/lane_detection_node/base_throttle", 0.5)
+        self.base_throttle = rospy.get_param("/autonomous_driving/lane_detection_node/base_throttle", 0.6)
 
         # Crop Parameters
         self.above_value = rospy.get_param("/autonomous_driving/lane_detection_node/above", 0.58)

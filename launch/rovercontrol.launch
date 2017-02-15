@@ -7,9 +7,9 @@
 
     <!-- PID Controller -->
     <node pkg="pid" type="controller" name="controller" ns="autonomous_driving" output="screen">
-        <param name="Kp" value="-0.125" />
-        <param name="Ki" value="-0.005" />
-        <param name="Kd" value="0" />
+        <param name="Kp" value="-0.1" />
+        <param name="Ki" value="-0.006" />
+        <param name="Kd" value="-0.0046" />
         <param name="upper_limit" value="1000" />
         <param name="lower_limit" value="-1000" />
         <param name="windup_limit" value="10" />
