@@ -22,6 +22,7 @@
         <param name="segment_start" type="int" value="6" />
         <!-- Anzahl Segmente -->
         <param name="segment_amount" type="int" value="1" />
+        <param name="base_throttle" type="double" value="0.65" />
     </node>
     
     <!-- Image Viewer (Only for testing) -->
