@@ -1,0 +1,17 @@
+<launch>
+
+	<arg name="debug" default="false" />
+	<arg name="bag_path" default="$(find autonomous_driving)/bags/tennis.bag"/>
+
+	<node pkg="rosbag" type="play" name="player" output="screen" args="-l $(arg bag_path)" if="$(arg debug)"/>
+
+	<include file="$(find autonomous_driving)/launch/camera.launch">
+		<arg name="debug" value="$(arg debug)" />
+	</include>
+	<include file="$(find autonomous_driving)/launch/object_detection.launch">
+		<arg name="debug" value="$(arg debug)" />
+	</include>
+	<include file="$(find autonomous_driving)/launch/rovercontrol.launch">
+		<arg name="debug" value="$(arg debug)" />
+	</include>
+</launch>
