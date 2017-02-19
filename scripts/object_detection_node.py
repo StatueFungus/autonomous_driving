@@ -20,7 +20,7 @@ DEFAULT_B_CALC_STEERING = False
 SEGMENTATION_FREQUENCY = 3
 DEBUG_FLAG = False
 waitValue = 1
-arrayContainer = []
+
 
 pointColor = (0,0,0)
 
@@ -53,7 +53,24 @@ class ObjectDetectionNode:
 		self.throttle_pub = rospy.Publisher(pub_throttle_topic, Float64, queue_size=1)
 		self.roadmask = None
 		self.bLastFrameObjectDetected = False
+	
+	
+		##objectDetection Values
 		self.breakFlag = False
+		self.arrayContainer = []
+		self.pointStorage = []
+		self.expectedPointA = 0
+		self.expectedPointB = 0
+		self.linieA = []
+		self.linieB = []
+		self.tempA = []
+		self.tempB = []
+		self.firstAx = 0
+		self.firstAy = 0
+		self.firstBx = 0
+		self.firstBy = 0	
+		
+		
 		rospy.spin()
 	
 	def callback(self, data):
@@ -132,56 +149,171 @@ class ObjectDetectionNode:
 		#	print(str(idxRows) + " von " + str(videoHeight))
 			for idxCols in range(0,videoWidth):
 				#print canny[idxRows,idxCols]
+				##         y       x
 				if canny[idxRows,idxCols] == 255:
+					
+					if len(self.pointStorage) is not 0:
+						## y
+						for i in range(0, len(self.pointStorage)):
+							if self.pointStorage[i][0] is idxRows:
+								self.pointStorage[i][1].append(idxCols)
+								break
+							if i is len(self.pointStorage)-1:
+								self.pointStorage.append([idxRows])
+								self.pointStorage[len(self.pointStorage)-1].append([idxCols])
+					else:
+						print("erster!!")
+						#pointStorage.append([])
+						self.pointStorage.append([idxRows])
+						self.pointStorage[0].append([idxCols])
+						## pointStorage.append([1111])
+						
+						## pointStorage[0][1].append(2299)
+						## pointStorage[1].append([3333])
+						## pointStorage[1][1].append(9922)
+						#[[55, [11, 2299]], [1111, [3333, 9922]]]
+						#print(pointStorage)
+					
+					
+					
 					#print("weises pixel bei [" + str(idxRows) + ", " + str(idxCols) + "] gefunden")
 					#cv2.circle(canny2 , (idxCols,idxRows), 1 ,(0,0,255),2)
 					#koordsStr = str(idxCols) + ", " + str(idxRows)
 					#cv2.putText(blank,koordsStr,(idxCols,idxRows), cv2.FONT_HERSHEY_PLAIN, 1,(255,255,255)) #,2,cv2.LINE_AA)
 					#print("ContainerGroesse " + str(len(arrayContainer)))
-					if len(arrayContainer) is not 0:
+					## if len(arrayContainer) is not 0:
 						
-						for y in range(0, len(arrayContainer)): # geht die linien durch
+						## for y in range(0, len(arrayContainer)): # geht die linien durch
 							
-							for x in range(0, len(arrayContainer[y])): # geht die koords in den linien durch
-								# vergleiche die X werte und die Y werte um falsche werte durch schlangenfoermige linien zu bekommen
-								# und auch falsche werte durch kurven zu bekommen
-								if abs(arrayContainer[y][x][1] - idxCols) < 30 and abs(arrayContainer[y][x][0] - idxRows) < 30:
-									arrayContainer[y].append([idxRows,idxCols])
-									self.breakFlag = True
-									break
-							if self.breakFlag is True:
-								self.breakFlag = False
-								break
-							
-							if y is (len(arrayContainer)-1):
-								arrayContainer.append([])
-								for i in range(0,len(arrayContainer)):
-									if len(arrayContainer[i]) is 0:
-										arrayContainer[i].append([idxRows, idxCols])
-							#Hier muss noch eine neue linie erstellt werden wenn der weisse punkt zu keiner anderen linie hinzuegefuegt werden kann
-					else:
-						print("Erster Pkt save")
-						arrayContainer.append([])
-						arrayContainer[0].append([idxRows,idxCols])
+							## for x in range(0, len(arrayContainer[y])): # geht die koords in den linien durch
+								## # vergleiche die X werte und die Y werte um falsche werte durch schlangenfoermige linien zu bekommen
+								## # und auch falsche werte durch kurven zu bekommen
+								
+								## for z in range(0, len(arrayContainer[y][x])):
+									## if abs(arrayContainer[y][x][z] - idxCols) < 30: # and abs(arrayContainer[y][x][0] - idxRows) < 30:
+										## arrayContainer[y][x][z].append(idxCols)
+										## self.breakFlag = True
+										## break
+								## if self.breakFlag is True:
+									## #self.breakFlag = False
+									## break
+							## if self.breakFlag is True:
+									## self.breakFlag = False
+									## break
+							## if y is (len(arrayContainer)-1):
+								## arrayContainer.append([])
+								## for i in range(0,len(arrayContainer)):
+									## if len(arrayContainer[i]) is 0:
+										## arrayContainer[i].append([idxRows, idxCols])
+							## #Hier muss noch eine neue linie erstellt werden wenn der weisse punkt zu keiner anderen linie hinzuegefuegt werden kann
+					## else:
+						## #print("Erster Pkt save")
+						## #print(idxCols)
+						## arrayContainer.append([])
+						## arrayContainer[0].append([idxRows])
+						## arrayContainer[0][0].append([idxCols])
+						#arrayContainer[0][0][1].append(2929)
+						#print(arrayContainer)
+						#print("Trenner")
+						#print(arrayContainer[0][0][1])
 					
 			idxRows = idxRows - decrement
 			if idxRows < videoHeight/1.5 and decrement < 30:
 				decrement = decrement + SEGMENTATION_FREQUENCY
 		
 		
-		for indexLinien in range(0,len(arrayContainer)):
-			r = random.randint(0,255)
-			g = random.randint(0,255)
-			b = random.randint(0,255)
-			pointColor = (b,g,r)
-			print("Length: " + str(len(arrayContainer)))
-			print("Der Median: " + str(arrayContainer[indexLinien][int(len(arrayContainer[indexLinien])/2+0.5)][1]))
-			for indexKoords in range(0,len(arrayContainer[indexLinien])):
-				print("Linie " + str(indexLinien) + ": X: " + str(arrayContainer[indexLinien][indexKoords][1]) + " Y: " + str(arrayContainer[indexLinien][indexKoords][0]))
-				cv2.circle(canny2 , (arrayContainer[indexLinien][indexKoords][1],arrayContainer[indexLinien][indexKoords][0]), 1 ,pointColor,2)
-		print("---------------------------------------- \n ")
-		del arrayContainer[:]
+		## for indexLinien in range(0,len(arrayContainer)):
+			## r = random.randint(0,255)
+			## g = random.randint(0,255)
+			## b = random.randint(0,255)
+			## pointColor = (b,g,r)
+			## print("Length: " + str(len(arrayContainer)))
+			## print("Der Median: " + str(arrayContainer[indexLinien][int(len(arrayContainer[indexLinien])/2+0.5)][1]))
+			## for indexKoords in range(0,len(arrayContainer[indexLinien])):
+				## print("Linie " + str(indexLinien) + ": X: " + str(arrayContainer[indexLinien][indexKoords][1]) + " Y: " + str(arrayContainer[indexLinien][indexKoords][0]))
+				## cv2.circle(canny2 , (arrayContainer[indexLinien][indexKoords][1],arrayContainer[indexLinien][indexKoords][0]), 1 ,pointColor,2)
+		## print("---------------------------------------- \n ")
+		## del arrayContainer[:]
 		
+		
+		
+		for idxPoints in range(0,len(self.pointStorage)):
+			pointColor = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
+			for idxX in range(0,len(self.pointStorage[idxPoints][1])):
+				print("X: " + str(self.pointStorage[idxPoints][1][idxX]) + ", Y: " + str(self.pointStorage[idxPoints][0]))
+				cv2.circle(canny2 , (self.pointStorage[idxPoints][1][idxX],self.pointStorage[idxPoints][0]), 1 ,pointColor,2)
+				
+				if self.expectedPointA is 0 and self.expectedPointB is 0:
+					#print("VideoWidth: " + str(videoWidth) + " -  " + str(videoWidth/2))
+					#print("PointStorageX : " + str(self.pointStorage[idxPoints][1][idxX]))
+					if self.pointStorage[idxPoints][1][idxX] < videoWidth/2:
+						self.tempA.append(self.pointStorage[idxPoints][1][idxX])
+						print("TempA fill:->")
+						print(self.tempA)
+					elif self.pointStorage[idxPoints][1][idxX] > videoWidth/2:
+						self.tempB.append(self.pointStorage[idxPoints][1][idxX])
+						print("TempB fill:->")
+						print(self.tempB)
+				else:
+					print("expectedPointB: " + str(self.expectedPointB))
+					print("pointStorageX: " + str(self.pointStorage[idxPoints][1][idxX]))
+					if self.pointStorage[idxPoints][1][idxX] < self.expectedPointA + 20 and self.pointStorage[idxPoints][1][idxX] > self.expectedPointA -20:
+						self.tempA.append(self.pointStorage[idxPoints][1][idxX])
+					elif self.pointStorage[idxPoints][1][idxX] < self.expectedPointB + 20 and self.pointStorage[idxPoints][1][idxX] > self.expectedPointB -20:
+						self.tempB.append(self.pointStorage[idxPoints][1][idxX])
+			print("passed " + str(self.pointStorage[idxPoints][0]))
+			if self.expectedPointA is 0 and self.expectedPointB is 0:
+				self.firstAx = self.tempA[int((len(self.tempA)/2))] # median wert
+				self.firstAy = self.pointStorage[idxPoints][0]
+				self.expectedPointA = self.firstAx
+				self.firstBx = self.tempB[int((len(self.tempB)/2))]
+				self.firstBy = self.pointStorage[idxPoints][0]
+				self.expectedPointB = self.firstBx
+			else:
+				print("tempA: ")
+				print(self.tempA)
+				print("tempB: Count: " + str(len(self.tempB)))
+				print(self.tempB)
+				#print("firstBx: "+ str(self.firstBx))
+				#print("firstBy: " + str(self.firstBy))
+				#print("Aktueller X: " + str(self.pointStorage[idxPoints][0]) + ", Y: " + str(self.tempB[int((len(self.tempB)/2)+0.5)]))
+				#print("idx tempB: " + str((len(self.tempB)/2.0)))
+				#print(str(1.0) + " / " + str((abs((float(self.firstBy)- float(self.pointStorage[idxPoints][0]))/(float(self.firstBx) - float(self.tempB[int((len(self.tempB)/2.0))]))))) + " * " + str(self.tempB[int((len(self.tempB)/2.0))]))
+				
+				
+				
+			#	print("str((abs((self.firstBy- self.pointStorage[idxPoints][0])/(self.firstBx - self.tempB[int((len(self.tempB)/2.0))])))) "
+				#print("| " + str(self.firstBy ) + " - " + str(self.pointStorage[idxPoints][0]) + " / " + str(self.firstBx) + " - " + str(self.tempB[int((len(self.tempB)/2.0))]) + " |")  
+				##						1 / | ( y0 - y1 )/ (x0 - x1) 
+				
+				if len(self.tempA) is not 0:
+					print("| " + str(float(self.firstAy)) + " - " + str(float(self.pointStorage[idxPoints][0])) + " / " + str(float(self.firstAx)) + " - " + str(float(self.tempA[int((len(self.tempA)/2.0))])) + " |")  
+					
+					self.expectedPointA = (1.0 / (abs((float(self.firstAy)+0.1- float(self.pointStorage[idxPoints][0]))/(float(self.firstAx)+0.1 - float(self.tempA[int((len(self.tempA)/2.0))])))))*self.tempA[int((len(self.tempA)/2.0))]
+				if len(self.tempB) is not 0:
+					self.expectedPointB = (1.0 / (abs((float(self.firstBy)+0.1- float(self.pointStorage[idxPoints][0]))/(float(self.firstBx)+0.1 - float(self.tempB[int((len(self.tempB)/2.0))])))))*self.tempB[int((len(self.tempB)/2.0))]
+			
+			if len(self.tempA) is not 0:
+				self.linieA.append([self.tempA[int((len(self.tempA)/2.0))],self.pointStorage[idxPoints][0]])
+				print("linieA")
+				print(self.linieA)
+			if len(self.tempB) is not 0:
+				self.linieB.append([self.tempB[int((len(self.tempB)/2.0))],self.pointStorage[idxPoints][0]])
+				print("linieB")
+				print(self.linieB)
+			del self.tempA[:]
+			del self.tempB[:]
+								#[[55, [11, 2299]], [1111, [3333, 9922]]]
+		print("_________________________________")
+		del self.pointStorage[:]
+		self.expectedPointA = 0
+		self.expectedPointB = 0
+		
+		#for idxLinie in range(0,len(linieA)-1):
+		cv2.polylines(canny2, np.int32([self.linieA]), 1, (0,0,255))
+		cv2.polylines(canny2, np.int32([self.linieB]), 1, (255,0,0))
+		del self.linieA[:]
+		del self.linieB[:]
 		cv2.imshow("Canny", canny2)
 		#cv2.imshow("Blank", blank)
 		## blur the image to remove noise
