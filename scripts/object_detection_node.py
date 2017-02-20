@@ -21,26 +21,6 @@ SEGMENTATION_FREQUENCY = 2
 DEBUG_FLAG = False
 waitValue = 1
 
-
-pointColor = (0,0,0)
-
-## cv2.namedWindow("original")
-## cv2.moveWindow("original", 650,350)
-## cv2.namedWindow("regionOfInterest")
-
-## cv2.namedWindow("theMask")
-## cv2.moveWindow("theMask",390,350)
-## cv2.namedWindow("hsvMask")
-## cv2.moveWindow("hsvMask",390,50)
-## cv2.namedWindow("hsvMask2")
-## cv2.moveWindow("hsvMask2",720,50)
-## cv2.namedWindow("hsvMask3")
-## cv2.moveWindow("hsvMask3",1050,50)
-## cv2.namedWindow("gamma2")
-## cv2.moveWindow("gamma2",1,50)
-## cv2.namedWindow("gamma3")
-## cv2.moveWindow("gamma3",1,350)
-
 class ObjectDetectionNode:
 	def __init__(self, sub_topic, pub_steering_topic, pub_throttle_topic):
 		self.bridge = CvBridge()
@@ -98,33 +78,29 @@ class ObjectDetectionNode:
 					del contours[idx]
 			return contours
 
-		## resize the Image from 640*480 to 320*240
-		#cv_image = cv2.resize(cv_image.copy(),None,fx=0.5, fy=0.5, interpolation = cv2.INTER_CUBIC)
-	
-		#videoHeight, videoWidth , _ = resizedImage.shape
 		videoHeight, videoWidth , _ = cv_image.shape
 		
 		## crop the Image and store it to the blank image
 		copyFrame = cv_image[(videoHeight*DEFAULT_HEIGHT_SCALE_FACTOR) : videoHeight*0.85, videoWidth*0.1: videoWidth*0.9] # Crop from x, y, w, h -> 100, 200, 300, 400
 		videoHeight, videoWidth , _ = copyFrame.shape
 	
-		# grayscale
-		
+		## grayscale
 		gray = self.img_prep.grayscale(copyFrame)
 	
-			# blur
+		## blur
 		blurred = self.img_prep.blur(gray, (5, 5), 0)
 	
-			# canny
+		## canny
 		canny = self.img_prep.edge_detection(blurred, 50, 150, 3)
-		canny2 = cv2.cvtColor(canny, cv2.COLOR_GRAY2BGR)
-		blank = np.zeros(canny2.shape, np.uint8)
-		#cv2.circle(canny2 , (videoWidth/2,videoHeight/2), 1 ,(0,255,0),2)
+		blank = np.zeros(copyFrame.shape, np.uint8)
+		
 		idxRows = videoHeight -1
 		decrement = 5
 		
+		## segment the image in the last row and middle row from the image
+		## store all detected white points in an array
+		## store the values sorted by the row (Y) value
 		while idxRows > 0 :
-
 			for idxCols in range(0,videoWidth):
 				##         y       x
 				if canny[idxRows,idxCols] == 255:
@@ -147,12 +123,13 @@ class ObjectDetectionNode:
 				break
 				
 			idxRows = int(videoHeight/1.8)
-		
+			
+			
+		## go through every value and kategorize it to an A and a B line
+		## store for every linie for every row (Y) a point (x,y) 
+		## decide the x value by taking the median value
 		for idxPoints in range(0,len(self.pointStorage)):
-			pointColor = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
-			for idxX in range(0,len(self.pointStorage[idxPoints][1])):
-				cv2.circle(canny2 , (self.pointStorage[idxPoints][1][idxX],self.pointStorage[idxPoints][0]), 1 ,pointColor,2)
-				
+			for idxX in range(0,len(self.pointStorage[idxPoints][1])):				
 				if self.expectedPointA is 0 and self.expectedPointB is 0:
 					if self.pointStorage[idxPoints][1][idxX] < videoWidth/2:
 						self.tempA.append(self.pointStorage[idxPoints][1][idxX])
@@ -186,21 +163,17 @@ class ObjectDetectionNode:
 
 		del self.pointStorage[:]
 		
-		cv2.line(canny2, (self.firstAx,self.firstAy),(self.expectedPointA,1), (0,0,255))
-		cv2.line(canny2, (self.firstBx,self.firstBy),(self.expectedPointB,1), (255,0,0))
-		
+		## draw a filled polygon with the choosen points
 		self.pointsOfInteresets = np.array([ [self.firstAx, self.firstAy],[self.expectedPointA,1], [self.expectedPointB,1], [self.firstBx, self.firstBy]], np.int32)
 		cv2.fillPoly(blank, [self.pointsOfInteresets], (255,255,255))
 		self.expectedPointA = 0
 		self.expectedPointB = 0
+		## crop the original image by the intereset region
 		croppedFrame = cv2.bitwise_and(copyFrame, blank)
 		del self.linieA[:]
 		del self.linieB[:]
-		cv2.imshow("Canny", canny2)
-		cv2.imshow("Blank", blank)
-		cv2.imshow("orgi", copyFrame)
-		cv2.imshow("coppedFrame",croppedFrame)
 
+		## blur the image
 		copyFrame = cv2.GaussianBlur(croppedFrame, (5,5),3)
 	
 		## change the color system from BGR to HSV
