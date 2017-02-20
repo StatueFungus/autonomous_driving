@@ -17,7 +17,7 @@ QUEUE_SIZE = 10
 DEFAULT_BASE_THROTTLE = 0.5
 DEFAULT_HEIGHT_SCALE_FACTOR = 0.62
 DEFAULT_B_CALC_STEERING = False
-SEGMENTATION_FREQUENCY = 3
+SEGMENTATION_FREQUENCY = 2
 DEBUG_FLAG = False
 waitValue = 1
 
@@ -142,7 +142,7 @@ class ObjectDetectionNode:
 		#blank = np.zeros(canny2.shape, np.uint8)
 		#cv2.circle(canny2 , (videoWidth/2,videoHeight/2), 1 ,(0,255,0),2)
 		idxRows = videoHeight -1
-		decrement = 10
+		decrement = 5
 		#arrayContainer[0].append([1,2,3,4])
 		#arrayContainer.append([])
 		while idxRows > 0 :
@@ -217,10 +217,12 @@ class ObjectDetectionNode:
 						#print("Trenner")
 						#print(arrayContainer[0][0][1])
 					
-			idxRows = idxRows - decrement
-			if idxRows < videoHeight/1.5 and decrement < 30:
-				decrement = decrement + SEGMENTATION_FREQUENCY
-		
+			#idxRows = videoHeight/2 #idxRows - decrement
+			if idxRows <= int(videoHeight/1.8): ## and decrement < 30: #1.5
+				#decrement = decrement + SEGMENTATION_FREQUENCY
+				break
+				
+			idxRows = int(videoHeight/1.8)
 		
 		## for indexLinien in range(0,len(arrayContainer)):
 			## r = random.randint(0,255)
@@ -255,30 +257,34 @@ class ObjectDetectionNode:
 						print("TempB fill:->")
 						print(self.tempB)
 				else:
-					print("expectedPointB: " + str(self.expectedPointB))
-					print("pointStorageX: " + str(self.pointStorage[idxPoints][1][idxX]))
-					if self.pointStorage[idxPoints][1][idxX] < self.expectedPointA + 20 and self.pointStorage[idxPoints][1][idxX] > self.expectedPointA -20:
+					#print("expectedPointB: " + str(self.expectedPointB))
+					print("pointStorageX: " + str(self.pointStorage[idxPoints][1][idxX]) + " < > " + str(self.firstBx) + " +-50")
+					#if self.pointStorage[idxPoints][1][idxX] < self.expectedPointA + 30 and self.pointStorage[idxPoints][1][idxX] > self.expectedPointA -30:
+					if self.pointStorage[idxPoints][1][idxX] < self.firstAx + 30 and self.pointStorage[idxPoints][1][idxX] > self.firstAx -30:
 						self.tempA.append(self.pointStorage[idxPoints][1][idxX])
-					elif self.pointStorage[idxPoints][1][idxX] < self.expectedPointB + 20 and self.pointStorage[idxPoints][1][idxX] > self.expectedPointB -20:
+					elif self.pointStorage[idxPoints][1][idxX] < self.firstBx + 30 and self.pointStorage[idxPoints][1][idxX] > self.firstBx -70:
 						self.tempB.append(self.pointStorage[idxPoints][1][idxX])
-			print("passed " + str(self.pointStorage[idxPoints][0]))
+			print(" ---- ------- ------ passed " + str(self.pointStorage[idxPoints][0]) + " ------- -------- -------")
 			if self.expectedPointA is 0 and self.expectedPointB is 0:
-				self.firstAx = self.tempA[int((len(self.tempA)/2))] # median wert
+				if len(self.tempA) is not 0:
+					self.firstAx = self.tempA[int((len(self.tempA)/2))] # median wert
 				self.firstAy = self.pointStorage[idxPoints][0]
 				self.expectedPointA = self.firstAx
-				self.firstBx = self.tempB[int((len(self.tempB)/2))]
+				if len(self.tempB) is not 0:
+					self.firstBx = self.tempB[int((len(self.tempB)/2))]
 				self.firstBy = self.pointStorage[idxPoints][0]
 				self.expectedPointB = self.firstBx
 			else:
-				print("tempA: ")
+				print("tempA: ",)
 				print(self.tempA)
-				print("tempB: Count: " + str(len(self.tempB)))
+				print("tempB: Count: " + str(len(self.tempB)),)
 				print(self.tempB)
 				#print("firstBx: "+ str(self.firstBx))
 				#print("firstBy: " + str(self.firstBy))
 				#print("Aktueller X: " + str(self.pointStorage[idxPoints][0]) + ", Y: " + str(self.tempB[int((len(self.tempB)/2)+0.5)]))
 				#print("idx tempB: " + str((len(self.tempB)/2.0)))
 				#print(str(1.0) + " / " + str((abs((float(self.firstBy)- float(self.pointStorage[idxPoints][0]))/(float(self.firstBx) - float(self.tempB[int((len(self.tempB)/2.0))]))))) + " * " + str(self.tempB[int((len(self.tempB)/2.0))]))
+				
 				
 				
 				
@@ -289,29 +295,60 @@ class ObjectDetectionNode:
 				if len(self.tempA) is not 0:
 					print("| " + str(float(self.firstAy)) + " - " + str(float(self.pointStorage[idxPoints][0])) + " / " + str(float(self.firstAx)) + " - " + str(float(self.tempA[int((len(self.tempA)/2.0))])) + " |")  
 					
-					self.expectedPointA = (1.0 / (abs((float(self.firstAy)+0.1- float(self.pointStorage[idxPoints][0]))/(float(self.firstAx)+0.1 - float(self.tempA[int((len(self.tempA)/2.0))])))))*self.tempA[int((len(self.tempA)/2.0))]
+					#self.expectedPointA = (1.0 / (abs((float(self.firstAy)+0.1- float(self.pointStorage[idxPoints][0]))/(float(self.firstAx)+0.1 - float(self.tempA[int((len(self.tempA)/2.0))])))))*self.tempA[int((len(self.tempA)/2.0))]
+					m = (float(self.firstAy) - float(self.pointStorage[idxPoints][0]))/(float(self.firstAx)+0.001 - float(self.tempA[int((len(self.tempA)/2.0))]))
+					print("mA: " + str(m))
+					self.expectedPointA = int((1-((m*self.firstAx - self.firstAy)*-1))/m)
 				if len(self.tempB) is not 0:
-					self.expectedPointB = (1.0 / (abs((float(self.firstBy)+0.1- float(self.pointStorage[idxPoints][0]))/(float(self.firstBx)+0.1 - float(self.tempB[int((len(self.tempB)/2.0))])))))*self.tempB[int((len(self.tempB)/2.0))]
+					## print("*************************************************")
+					## print("firstBy: " + str(self.firstBy) + " firstBx: " + str(self.firstBx))
+					## print("aktY: " + str(float(self.pointStorage[idxPoints][0])) +  " aktX: " + str(self.tempB[int((len(self.tempB)/2.0))]))
+					## print("*************************************************")
+					
+					
+					#self.expectedPointB = (1.0 / (abs((float(self.firstBy)+0.1- float(self.pointStorage[idxPoints][0]))/(float(self.firstBx)+0.1 - float(self.tempB[int((len(self.tempB)/2.0))])))))*self.tempB[int((len(self.tempB)/2.0))]
+					#if self.expectedPointB > videoWidth:
+					#	self.expectedPointB =  self.tempB[int((len(self.tempB)/2.0))]
+					
+					m = (float(self.firstBy) - float(self.pointStorage[idxPoints][0]))/(float(self.firstBx)+0.001 - float(self.tempB[int((len(self.tempB)/2.0))]))
+					print("m: " + str(m) + " = " + str(float(self.firstBy)) +" - "+ str(float(self.pointStorage[idxPoints][0])) + " / "+str(float(self.firstBx)+0.001) + " - "+ str(float(self.tempB[int((len(self.tempB)/2.0))])))
+					
+					self.expectedPointB = int((1-((m*self.firstBx - self.firstBy)*-1))/m)
+					print("expectedB: " + str(self.expectedPointB) + " = " + str(1) + " - (" + str(m*self.firstBx) + " - "+ str(self.firstBy) + " * ("+ str(-1))+")" + " /  " + str(m)
 			
-			if len(self.tempA) is not 0:
-				self.linieA.append([self.tempA[int((len(self.tempA)/2.0))],self.pointStorage[idxPoints][0]])
-				print("linieA")
-				print(self.linieA)
-			if len(self.tempB) is not 0:
-				self.linieB.append([self.tempB[int((len(self.tempB)/2.0))],self.pointStorage[idxPoints][0]])
-				print("linieB")
-				print(self.linieB)
+			
+			
+			## if len(self.tempA) is not 0:
+				## #self.firstAx = self.tempA[int((len(self.tempA)/2))] # median wert
+				## #self.firstAy = self.pointStorage[idxPoints][0]
+				## self.linieA.append([self.tempA[int((len(self.tempA)/2.0))],self.pointStorage[idxPoints][0]])
+				## print("linieA",)
+				## print(self.linieA)
+			## if len(self.tempB) is not 0:
+				## #self.firstBx = self.tempB[int((len(self.tempB)/2))]
+				## #self.firstBy = self.pointStorage[idxPoints][0]
+				## self.linieB.append([self.tempB[int((len(self.tempB)/2.0))],self.pointStorage[idxPoints][0]])
+				## print("linieB",)
+				## print(self.linieB)
+				
 			del self.tempA[:]
 			del self.tempB[:]
 								#[[55, [11, 2299]], [1111, [3333, 9922]]]
 		print("_________________________________")
 		del self.pointStorage[:]
+		
+		
+		## for idxLinie in range(0,len(self.linieA)-1):
+			## cv2.line(canny2, (self.linieA[idxLinie][0],self.linieA[idxLinie][1]),(self.linieA[idxLinie+1][0],self.linieA[idxLinie+1][1]), (0,0,255))
+		## for idxLinie in range(0,len(self.linieB)-1):
+			## cv2.line(canny2, (self.linieB[idxLinie][0], self.linieB[idxLinie][1]),(self.linieB[idxLinie+1][0],self.linieB[idxLinie+1][1]), (0,0,255))
+		cv2.line(canny2, (self.firstAx,self.firstAy),(self.expectedPointA,1), (0,0,255))
+		cv2.line(canny2, (self.firstBx,self.firstBy),(self.expectedPointB,1), (255,0,0))
 		self.expectedPointA = 0
 		self.expectedPointB = 0
-		
-		#for idxLinie in range(0,len(linieA)-1):
-		cv2.polylines(canny2, np.int32([self.linieA]), 1, (0,0,255))
-		cv2.polylines(canny2, np.int32([self.linieB]), 1, (255,0,0))
+		#cv2.polylines(canny2, np.int32([self.linieA]), 1, (0,0,255))
+		#cv2.polylines(canny2, np.int32([self.linieB]), 1, (255,0,0))
+		#cv2.polylines(canny2, np.int32([self.pointStorage]), 1, (0,255,0))
 		del self.linieA[:]
 		del self.linieB[:]
 		cv2.imshow("Canny", canny2)
