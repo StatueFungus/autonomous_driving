@@ -173,14 +173,19 @@ class LaneDetectionNode:
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(canny2, "bgr8"))
             self.setpoint_pub.publish(0.0)
             if state_point_x:
-		heigth, width, _ = canny.shape
+                heigth, width, _ = canny.shape
+                # Publish state
                 deviation = state_point_x - int(width/2)
                 self.state_pub.publish(deviation)
+                # Slow down 
                 devThrottle = abs(deviation / 30.0) 
                 if devThrottle < 0.1:
                     devThrottle = 0.0
                 elif devThrottle > 0.25:
                     devThrottle = 0.25
+                # Object detected?
+                if bCollision is True:
+                    devThrottle = 1.0
                 self.throttle_pub.publish((1.0 - devThrottle) * self.base_throttle)
         except CvBridgeError as e:
             rospy.logerr(e)
