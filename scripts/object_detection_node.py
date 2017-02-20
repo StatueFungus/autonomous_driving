@@ -68,7 +68,8 @@ class ObjectDetectionNode:
 		self.firstAx = 0
 		self.firstAy = 0
 		self.firstBx = 0
-		self.firstBy = 0	
+		self.firstBy = 0
+		self.pointsOfInterests = 0
 		
 		
 		rospy.spin()
@@ -130,7 +131,7 @@ class ObjectDetectionNode:
 			#cv2.imshow("regionOfInterest", copyFrame)
 		
 		# grayscale
-		cv2.imshow("orgi", copyFrame)
+		
 		gray = self.img_prep.grayscale(copyFrame)
 	
 			# blur
@@ -139,7 +140,7 @@ class ObjectDetectionNode:
 			# canny
 		canny = self.img_prep.edge_detection(blurred, 50, 150, 3)
 		canny2 = cv2.cvtColor(canny, cv2.COLOR_GRAY2BGR)
-		#blank = np.zeros(canny2.shape, np.uint8)
+		blank = np.zeros(canny2.shape, np.uint8)
 		#cv2.circle(canny2 , (videoWidth/2,videoHeight/2), 1 ,(0,255,0),2)
 		idxRows = videoHeight -1
 		decrement = 5
@@ -344,15 +345,21 @@ class ObjectDetectionNode:
 			## cv2.line(canny2, (self.linieB[idxLinie][0], self.linieB[idxLinie][1]),(self.linieB[idxLinie+1][0],self.linieB[idxLinie+1][1]), (0,0,255))
 		cv2.line(canny2, (self.firstAx,self.firstAy),(self.expectedPointA,1), (0,0,255))
 		cv2.line(canny2, (self.firstBx,self.firstBy),(self.expectedPointB,1), (255,0,0))
+		
+		self.pointsOfInteresets = np.array([ [self.firstAx, self.firstAy],[self.expectedPointA,1], [self.expectedPointB,1], [self.firstBx, self.firstBy]], np.int32)
+		cv2.fillPoly(blank, [self.pointsOfInteresets], (255,255,255))
 		self.expectedPointA = 0
 		self.expectedPointB = 0
 		#cv2.polylines(canny2, np.int32([self.linieA]), 1, (0,0,255))
 		#cv2.polylines(canny2, np.int32([self.linieB]), 1, (255,0,0))
 		#cv2.polylines(canny2, np.int32([self.pointStorage]), 1, (0,255,0))
+		croppedFrame = cv2.bitwise_and(copyFrame, blank)
 		del self.linieA[:]
 		del self.linieB[:]
 		cv2.imshow("Canny", canny2)
-		#cv2.imshow("Blank", blank)
+		cv2.imshow("Blank", blank)
+		cv2.imshow("orgi", copyFrame)
+		cv2.imshow("coppedFrame",croppedFrame)
 		## blur the image to remove noise
 		##Knoten
 		## Bilateral Filter: Heavy Performance hit!
