@@ -123,9 +123,9 @@ class LaneDetectionNode:
             deviation = state_point_x - int(width/2)
             # Slow down 
             normedDeviation = abs(deviation / 30.0) 
-            devThrottle = 0.0
-            #if normedDeviation < 0.1:
-             #   devThrottle = 0.0
+            devThrottle = normedDeviation
+            if normedDeviation < 0.1:
+                devThrottle = 0.0
             if normedDeviation > 0.25:
                 devThrottle = 0.25
             adjustedThrottle = (1.0 - devThrottle) * self.base_throttle
