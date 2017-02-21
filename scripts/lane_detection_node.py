@@ -95,61 +95,13 @@ class LaneDetectionNode:
         self.ipm.initializeTransformationMatrix(cv_image)
         warped = self.ipm.warp(cv_image)
 
-        # crop
+        # Bild Vorverarbeiten
         cropped = self.img_prep.crop(warped, self.above_value, self.below_value, self.side_value)
-
-        # grayscale
         gray = self.img_prep.grayscale(cropped)
-
-        # blur
         blurred = self.img_prep.blur(gray, (self.deviation, self.deviation), self.border)
-
-        # canny
         canny = self.img_prep.edge_detection(blurred, self.threshold_low, self.threshold_high, self.aperture)
 
-        # Any Object Detection
-        # Preproc 
-        cropped2 = self.img_prep.crop(warped, 0.7, 0.1, .388)
-        gray2 = self.img_prep.grayscale(cropped2)
-        blurred2 = self.img_prep.blur(gray2, (self.deviation, self.deviation), self.border)
-        canny2 = self.img_prep.edge_detection(blurred2, self.threshold_low, self.threshold_high, self.aperture)
-
-        # Remove IPM Canny lines
-        heigth, width = canny2.shape
-        cv2.line(canny2, (0, 0), (45, heigth), (0,0, 0), 3)
-        cv2.line(canny2, (width, 0), (width - 44, heigth), (0, 0, 0), 3)
-        
-        # Dilation
-        #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(2,2))
-        #canny2 = cv2.dilate(canny2,kernel,iterations = 1)
-
-        # Finde von Mitte den ersten weißen Punkt rechts
-        h, w = canny2.shape[:2]
-        idxRows = h - 1 				
-        for idxCols in range(w/2,w): 							
-            if canny2[idxRows,idxCols] == 255:
-                canny2[idxRows,idxCols] = 128
-                canny2[idxRows,idxCols - 20] = 128	
-                break
-
-        nextIdxCols = idxCols
-        laneWidth = 18
-        bCollision = False
-        for nextIdxRows in range(idxRows - 1,15, -1):
-                nextIdxCols = self.findNextLanePoint(nextIdxRows, nextIdxCols, 4, 4, canny2)
-                canny2[nextIdxRows,nextIdxCols] = 128
-                canny2[nextIdxRows,nextIdxCols - 20] = 128
-                if self.checkCollision(nextIdxRows, nextIdxCols, laneWidth, canny2) is not -1:
-                    bCollision = True
-                    nextIdxCols = self.checkCollision(nextIdxRows, nextIdxCols, laneWidth, canny2)
-                    break
-        
-        canny2 = cv2.cvtColor(canny2, cv2.COLOR_GRAY2BGR)
-        cv2.circle(canny2, (w/2, h - 1 ), 1 ,(0,255,0),2)
-        if bCollision is True:
-            cv2.circle(canny2, (nextIdxCols, nextIdxRows), 1 ,(0,0,255),2)
-
-        # Remove IPM Canny lines
+        # IPM Canny Linien entfernen
         heigth, width = canny.shape
         if width == 63:  # TODO dirty hack
             cv2.line(canny, (0, 4/2), (18/2, heigth), (0, 0, 0), 2)
@@ -164,29 +116,89 @@ class LaneDetectionNode:
         self.lane_model.draw_segments(canny)
         state_point_x = self.lane_model.state_point_x()
 
+        # Throttle und Steering berechnen
+        if state_point_x:
+            heigth, width, _ = canny.shape
+            # Deviation
+            deviation = state_point_x - int(width/2)
+            # Slow down 
+            normedDeviation = abs(deviation / 30.0) 
+            devThrottle = 0.0
+            #if normedDeviation < 0.1:
+             #   devThrottle = 0.0
+            if normedDeviation > 0.25:
+                devThrottle = 0.25
+            adjustedThrottle = (1.0 - devThrottle) * self.base_throttle
+
+        # Any-Object-Detection
+        # Bild Vorbearbeiten 
+        ##now = rospy.get_rostime()
+        cropped2 = self.img_prep.crop(warped, 0.7, 0.1, .388)
+        gray2 = self.img_prep.grayscale(cropped2)
+        blurred2 = self.img_prep.blur(gray2, (self.deviation, self.deviation), self.border)
+        canny2 = self.img_prep.edge_detection(blurred2, self.threshold_low, self.threshold_high, self.aperture)
+    
+        # IPM Canny Linien entfernen
+        heigth, width = canny2.shape
+        cv2.line(canny2, (0, 0), (45, heigth), (0,0, 0), 3)
+        cv2.line(canny2, (width, 0), (width - 44, heigth), (0, 0, 0), 3)
+        
+        # Dilation
+        #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(2,2))
+        #canny2 = cv2.dilate(canny2,kernel,iterations = 1)
+
+        # Finde vom Mittelpunkt den ersten weißen Punkt rechts
+        h, w = canny2.shape[:2]
+        idxRows = h - 1 				
+        for idxCols in range(w/2,w): 							
+            if canny2[idxRows,idxCols] == 255:
+                canny2[idxRows,idxCols] = 128
+                canny2[idxRows,idxCols - 20] = 128	
+                break
+
+        # Finde die weiteren Punkte von rechter Spur
+        if normedDeviation < 0.2:
+            numberOfRowsToIgnore = 1
+        else: 
+            numberOfRowsToIgnore = 25
+        nextIdxCols = idxCols
+        laneWidth = 17
+        bCollision = False
+        for nextIdxRows in range(idxRows - 1, numberOfRowsToIgnore, -1):
+                nextIdxCols = self.findNextLanePoint(nextIdxRows, nextIdxCols, 4, 4, canny2)
+                canny2[nextIdxRows,nextIdxCols] = 128
+                canny2[nextIdxRows,nextIdxCols - 20] = 128
+                if self.checkCollision(nextIdxRows, nextIdxCols, laneWidth, canny2) is not -1:
+                    bCollision = True
+                    nextIdxCols = self.checkCollision(nextIdxRows, nextIdxCols, laneWidth, canny2)
+                    break
+        
+        canny2 = cv2.cvtColor(canny2, cv2.COLOR_GRAY2BGR)
+        cv2.circle(canny2, (w/2, h - 1 ), 1 ,(0,255,0),2)
+        if bCollision is True:
+            canny2[nextIdxRows,nextIdxCols] = (0,0,255)
+            #cv2.circle(canny2, (nextIdxCols, nextIdxRows), 1 ,(0,0,255),2)
+
+        # Objekt erkannt?
+        if bCollision is True:
+            #print "COLLISION!!!"
+            adjustedThrottle = -1.0
+
+        ##end = rospy.get_rostime()
+        ##rospy.loginfo("Milliseconds    %s", str((end - now)/1000000.0))
+
         if self.reset_tracking is True:
             self.init_lanemodel()
             self.reset_tracking = False
 
-        # publish to pid
+        # publish 
         try:
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(canny2, "bgr8"))
             self.setpoint_pub.publish(0.0)
             if state_point_x:
-                heigth, width, _ = canny.shape
                 # Publish state
-                deviation = state_point_x - int(width/2)
                 self.state_pub.publish(deviation)
-                # Slow down 
-                devThrottle = abs(deviation / 30.0) 
-                if devThrottle < 0.1:
-                    devThrottle = 0.0
-                elif devThrottle > 0.25:
-                    devThrottle = 0.25
-                # Object detected?
-                if bCollision is True:
-                    devThrottle = 1.0
-                self.throttle_pub.publish((1.0 - devThrottle) * self.base_throttle)
+                self.throttle_pub.publish(adjustedThrottle)
         except CvBridgeError as e:
             rospy.logerr(e)
 
