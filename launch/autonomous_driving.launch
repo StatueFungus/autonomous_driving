@@ -11,7 +11,8 @@
 	<include file="$(find autonomous_driving)/launch/lane_detection.launch">
 		<arg name="debug" value="$(arg debug)" />
 	</include>
-	<!-- <include file="$(find autonomous_driving)/launch/object_detection.launch">
+	<!-- Implemented in lane_detection.py 
+        <include file="$(find autonomous_driving)/launch/object_detection.launch">
 		<arg name="debug" value="$(arg debug)" /> 
 	</include> -->
 	<include file="$(find autonomous_driving)/launch/rovercontrol.launch">

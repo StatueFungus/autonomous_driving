@@ -9,9 +9,9 @@
         <param name="deviation" type="int" value="3" />
         <param name="border" type="int" value="0" />
 	<!-- Bild zuschneiden -->
-	<param name="above" type="double" value="0.85" />
+	<param name="above" type="double" value="0.7" />
         <param name="below" type="double" value="0.1" />    
-	<param name="side" type="double" value="0.449" /> 
+	<param name="side" type="double" value="0.388" />
 	<!-- Canny -->    
 	<param name="threshold_low" type="int" value="50" />
         <param name="threshold_high" type="int" value="150" />
@@ -19,7 +19,7 @@
 	<!-- Strassenbreite in Pixel -->
         <param name="lane_width" type="int" value="20" />
         <!-- Startpunkt in Pixel des ersten Segments -->
-        <param name="segment_start" type="int" value="6" />
+        <param name="segment_start" type="int" value="42" />
         <!-- Anzahl Segmente -->
         <param name="segment_amount" type="int" value="1" />
         <param name="base_throttle" type="double" value="0.65" />

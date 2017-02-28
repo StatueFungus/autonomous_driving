@@ -15,6 +15,7 @@ NODE_NAME = "lane_detection_node"
 SUB_TOPIC = "image"
 SUB_BASE_THROTTLE_TOPIC = "baseThrottle"
 PUB_TOPIC = "debug_image"
+PUB_OBJ_TOPIC = "debug_obj_image"
 PUB_SETPOINT_TOPIC = "setpoint"
 PUB_STATE_TOPIC = "state"
 PUB_THROTTLE_TOPIC = "lanecontroller/throttle"
@@ -27,13 +28,14 @@ DEFAULT_SEGMENT_AMOUNT = 1
 
 
 class LaneDetectionNode:
-    def __init__(self, node_name, sub_topic, sub_base_throttle_topic, pub_topic, pub_setpoint_topic, pub_state_topic, pub_throttle_topic, reset_service):
+    def __init__(self, node_name, sub_topic, sub_base_throttle_topic, pub_topic, pub_obj_topic, pub_setpoint_topic, pub_state_topic, pub_throttle_topic, reset_service):
         self.bridge = CvBridge()
         self.img_prep = ImagePreparator()
         self.ipm = InversePerspectiveMapping()
 
         # Publisher
         self.image_pub = rospy.Publisher(pub_topic, Image, queue_size=QUEUE_SIZE)
+        self.image_obj_pub = rospy.Publisher(pub_obj_topic, Image, queue_size=QUEUE_SIZE)
         self.setpoint_pub = rospy.Publisher(pub_setpoint_topic, Float64, queue_size=QUEUE_SIZE)
         self.state_pub = rospy.Publisher(pub_state_topic, Float64, queue_size=QUEUE_SIZE)
         self.throttle_pub = rospy.Publisher(pub_throttle_topic, Float64, queue_size=QUEUE_SIZE)
@@ -50,9 +52,9 @@ class LaneDetectionNode:
         self.base_throttle = rospy.get_param("/autonomous_driving/lane_detection_node/base_throttle", 0.6)
 
         # Crop Parameters
-        self.above_value = rospy.get_param("/autonomous_driving/lane_detection_node/above", 0.58)
+        self.above_value = rospy.get_param("/autonomous_driving/lane_detection_node/above", 0.7)
         self.below_value = rospy.get_param("/autonomous_driving/lane_detection_node/below", 0.1)
-        self.side_value = rospy.get_param("/autonomous_driving/lane_detection_node/side", 0.3)
+        self.side_value = rospy.get_param("/autonomous_driving/lane_detection_node/side", 0.388)
 
         # Lane Tracking Parameters
         self.deviation = rospy.get_param("/autonomous_driving/lane_detection_node/deviation", 5)
@@ -101,24 +103,19 @@ class LaneDetectionNode:
         blurred = self.img_prep.blur(gray, (self.deviation, self.deviation), self.border)
         canny = self.img_prep.edge_detection(blurred, self.threshold_low, self.threshold_high, self.aperture)
 
-        # IPM Canny Linien entfernen
+        # IPM Canny Linien entfernen (hack)
         heigth, width = canny.shape
-        if width == 63:  # TODO dirty hack
-            cv2.line(canny, (0, 4/2), (18/2, heigth), (0, 0, 0), 2)
-            cv2.line(canny, (width, 4/2), (width - 18/2, heigth), (0, 0, 0), 2)
-        else:
-            cv2.line(canny, (0, 4), (18, heigth), (0, 0, 0), 2)
-            cv2.line(canny, (width, 4), (width - 18, heigth), (0, 0, 0), 2)
+        cv2.line(canny, (0, 0), (45, heigth), (0,0, 0), 3)
+        cv2.line(canny, (width, 0), (width - 44, heigth), (0, 0, 0), 3)
 
         # Lane Detection
-        canny = cv2.cvtColor(canny, cv2.COLOR_GRAY2BGR)
-        self.lane_model.update_segments(canny.copy())
-        self.lane_model.draw_segments(canny)
+        cannyBGR = cv2.cvtColor(canny, cv2.COLOR_GRAY2BGR)
+        self.lane_model.update_segments(cannyBGR.copy())
+        self.lane_model.draw_segments(cannyBGR)
         state_point_x = self.lane_model.state_point_x()
 
         # Throttle und Steering berechnen
         if state_point_x:
-            heigth, width, _ = canny.shape
             # Deviation
             deviation = state_point_x - int(width/2)
             # Slow down 
@@ -130,30 +127,15 @@ class LaneDetectionNode:
                 devThrottle = 0.25
             adjustedThrottle = (1.0 - devThrottle) * self.base_throttle
 
-        # Any-Object-Detection
-        # Bild Vorbearbeiten 
-        ##now = rospy.get_rostime()
-        cropped2 = self.img_prep.crop(warped, 0.7, 0.1, .388)
-        gray2 = self.img_prep.grayscale(cropped2)
-        blurred2 = self.img_prep.blur(gray2, (self.deviation, self.deviation), self.border)
-        canny2 = self.img_prep.edge_detection(blurred2, self.threshold_low, self.threshold_high, self.aperture)
-    
-        # IPM Canny Linien entfernen
-        heigth, width = canny2.shape
-        cv2.line(canny2, (0, 0), (45, heigth), (0,0, 0), 3)
-        cv2.line(canny2, (width, 0), (width - 44, heigth), (0, 0, 0), 3)
-        
-        # Dilation
-        #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(2,2))
-        #canny2 = cv2.dilate(canny2,kernel,iterations = 1)
+
+        # Any-Object-Detection 
 
         # Finde vom Mittelpunkt den ersten weißen Punkt rechts
-        h, w = canny2.shape[:2]
-        idxRows = h - 1 				
-        for idxCols in range(w/2,w): 							
-            if canny2[idxRows,idxCols] == 255:
-                canny2[idxRows,idxCols] = 128
-                canny2[idxRows,idxCols - 20] = 128	
+        idxRows = heigth - 1 				
+        for idxCols in range(width/2,width): 							
+            if canny[idxRows,idxCols] == 255:
+                canny[idxRows,idxCols] = 128
+                canny[idxRows,idxCols - 20] = 128	
                 break
 
         # Finde die weiteren Punkte von rechter Spur
@@ -164,37 +146,41 @@ class LaneDetectionNode:
         nextIdxCols = idxCols
         laneWidth = 17
         bCollision = False
+        # Bildzeilen durchgehen
         for nextIdxRows in range(idxRows - 1, numberOfRowsToIgnore, -1):
-                nextIdxCols = self.findNextLanePoint(nextIdxRows, nextIdxCols, 4, 4, canny2)
-                canny2[nextIdxRows,nextIdxCols] = 128
-                canny2[nextIdxRows,nextIdxCols - 20] = 128
-                if self.checkCollision(nextIdxRows, nextIdxCols, laneWidth, canny2) is not -1:
+                # Nächsten Punkt finden
+                nextIdxCols = self.findNextLanePoint(nextIdxRows, nextIdxCols, 4, 4, canny)
+                # Debug prints
+                canny[nextIdxRows,nextIdxCols] = 128
+                canny[nextIdxRows,nextIdxCols - 20] = 128
+                # Prüfe Bildzeile (Straße) auf Objekte  
+                collisionCol = self.checkCollision(nextIdxRows, nextIdxCols, laneWidth, canny)
+                if collisionCol is not -1:
+                    nextIdxCols = collisionCol
                     bCollision = True
-                    nextIdxCols = self.checkCollision(nextIdxRows, nextIdxCols, laneWidth, canny2)
                     break
         
-        canny2 = cv2.cvtColor(canny2, cv2.COLOR_GRAY2BGR)
-        cv2.circle(canny2, (w/2, h - 1 ), 1 ,(0,255,0),2)
+        # Debug prints
+        cannyObjBGR = cv2.cvtColor(canny, cv2.COLOR_GRAY2BGR)
+        cv2.circle(cannyObjBGR, (width/2, heigth - 1 ), 1 ,(0,255,0),2)
         if bCollision is True:
-            canny2[nextIdxRows,nextIdxCols] = (0,0,255)
-            #cv2.circle(canny2, (nextIdxCols, nextIdxRows), 1 ,(0,0,255),2)
+            cannyObjBGR[nextIdxRows,nextIdxCols] = (0,0,255)
 
         # Objekt erkannt?
         if bCollision is True:
-            #print "COLLISION!!!"
             adjustedThrottle = -1.0
 
-        ##end = rospy.get_rostime()
-        ##rospy.loginfo("Milliseconds    %s", str((end - now)/1000000.0))
-
+        # Reset?
         if self.reset_tracking is True:
             self.init_lanemodel()
             self.reset_tracking = False
-
+         
         # publish 
         try:
-            self.image_pub.publish(self.bridge.cv2_to_imgmsg(canny2, "bgr8"))
+            self.image_pub.publish(self.bridge.cv2_to_imgmsg(cannyBGR, "bgr8"))
+            self.image_obj_pub.publish(self.bridge.cv2_to_imgmsg(cannyObjBGR, "bgr8"))
             self.setpoint_pub.publish(0.0)
+           
             if state_point_x:
                 # Publish state
                 self.state_pub.publish(deviation)
@@ -216,7 +202,7 @@ class LaneDetectionNode:
 
 def main():
     try:
-        LaneDetectionNode(NODE_NAME, SUB_TOPIC, SUB_BASE_THROTTLE_TOPIC, PUB_TOPIC, PUB_SETPOINT_TOPIC, PUB_STATE_TOPIC, PUB_THROTTLE_TOPIC, RESET_SERVICE)
+        LaneDetectionNode(NODE_NAME, SUB_TOPIC, SUB_BASE_THROTTLE_TOPIC, PUB_TOPIC, PUB_OBJ_TOPIC, PUB_SETPOINT_TOPIC, PUB_STATE_TOPIC, PUB_THROTTLE_TOPIC, RESET_SERVICE)
     except KeyboardInterrupt:
         rospy.loginfo("Shutting down node %s", NODE_NAME)
 
