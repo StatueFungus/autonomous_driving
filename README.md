@@ -1,39 +1,24 @@
+# Autonomous Driving
+
+This software was developed as part of college project at Hochschule Darmstadt in semester 2016 / 2017.
+
+You can watch a demo of this project by clicking at the image below.
+[![DEMO](http://img.youtube.com/vi/hJZtA5Ydt8g/0.jpg)](http://www.youtube.com/watch?v=hJZtA5Ydt8g)
+
+
 # Installation
 
+## Preparations
 
-## Vorbereitungen
+First of all you need a ROS installation with the Indigo distribution.
+A detailed installation guide for ROS can be found at http://wiki.ros.org
 
-Es wird eine ROS Installation mit der Distribution Indigo benötigt.
+There are some dependencies requiered to build the project.
+You can either install the manually or by using the [rosdep](http://wiki.ros.org/rosdep)-command from the ros environment. 
 
-Eine detaillierte Installationsanleitung für ROS findet sich unter http://wiki.ros.org
+## Build project
 
-Zum Installieren werden folgende Abhängigkeiten benötigt: **OpenCV (>= 2.4)**, **mavros**, **mavros_msgs**, **imutils**
-
-### OpenCV
-Für eine Installationsanleitung von OpenCV siehe [Wiki Eintrag](https://gitlab.com/SGimbel/MPSE-WS1617_B/wikis/opencv%20installation).
-
-### Mavros
-```shell
-sudo apt-get install ros-indigo-mavros ros-indigo-mavros-msgs
-```
-
-### imutils 
-imutils ist eine python Bibliothek, welche einfach mit pip installiert werden kann.
-
-```shell
-sudo pip install imutils
-```
-
-Sollte pip nicht auf dem System installiert sein, kann es einfach mit dem Befehl `sudo apt-get install python-pip` installiert werden. 
-
-
-```shell
-source /opt/ros/indigo/setup.bash
-```
-
-## Projekt bauen
-
-Als nächstes muss ein catkin_workspace an beliebiger Stelle im System angelegt werden: 
+Next you have to create a workspace at any place of your file system. 
 
 ```shell
 mkdir -p <workspace_folder>/src
@@ -42,7 +27,7 @@ cd <workspace_folder>/src
 catkin_init_workspace
 ```
 
-Der Workspace muss jetzt in den Umgebungsvariablen bekannt gemacht werden
+With the following statement you add important workspace informations to your environment variables. You always have to do this before you can use this package. 
 
 ```shell
 cd ../
@@ -52,24 +37,11 @@ catkin_make
 source devel/setup.bash
 ```
 
-Anschließend wird das Repository in den Workspace geklont und der Workspace erneut gebaut:
-
+After that you go to the src-folder, clone the project into it and build the ros package
 ```shell
 cd src
-git clone git@gitlab.com:SGimbel/MPSE-WS1617_B.git autonomous_driving
+git clone https://github.com/StatueFungus/autonomous_driving.git autonomous_driving
 
 cd ../
 catkin_make
 ```
-
-Bevor der Workspace gebaut werden kann, müssen evtl noch nötige Dependencies installiert werden.
-Dafür kann einfach der Befehl 
-
-```shell
-rosdep install autonomous_driving
-```
-
-verwendet werden. 
-
-
-
