@@ -3,7 +3,7 @@
 This software was developed as part of college project at Hochschule Darmstadt in semester 2016 / 2017.
 
 You can watch a demo of this project by clicking at the image below.
-[![DEMO](http://img.youtube.com/vi/hJZtA5Ydt8g/0.jpg)](http://www.youtube.com/watch?v=hJZtA5Ydt8g)
+[![DEMO](http://img.youtube.com/vi/xFgdFPT1Wlw/0.jpg)](https://www.youtube.com/watch?v=xFgdFPT1Wlw)
 
 
 # Installation
