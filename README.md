@@ -13,8 +13,8 @@ You can watch a demo of this project by clicking at the image below.
 First of all you need a ROS installation with the Indigo distribution.
 A detailed installation guide for ROS can be found at http://wiki.ros.org
 
-There are some dependencies requiered to build the project.
-You can either install the manually or by using the [rosdep](http://wiki.ros.org/rosdep)-command from the ros environment. 
+There are some dependencies required to build the project.
+You can either install them manually or by using the [rosdep](http://wiki.ros.org/rosdep)-command from the ros environment. 
 
 ## Build project
 
@@ -27,7 +27,7 @@ cd <workspace_folder>/src
 catkin_init_workspace
 ```
 
-With the following statement you add important workspace informations to your environment variables. You always have to do this before you can use this package. 
+With the following statement you add important workspace informations to your environment variables. You always have to do this before you can use this package for ros. 
 
 ```shell
 cd ../
